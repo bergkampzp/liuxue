@@ -1,6 +1,3 @@
-import sys, pathlib
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-
 from sync_1point3acres import parse_gpa
 
 

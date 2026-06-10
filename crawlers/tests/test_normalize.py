@@ -1,0 +1,32 @@
+from normalize import normalize_decision
+
+
+class TestNormalizeDecision:
+    def test_ad_word(self):
+        assert normalize_decision("AD小奖") == ("Offer", None)
+
+    def test_offer(self):
+        assert normalize_decision("Offer") == ("Offer", None)
+
+    def test_grad_not_misjudged(self):
+        # bug 回归："graduate" 含 "ad" 子串但不是 Offer
+        assert normalize_decision("graduate program info") == ("Other", None)
+
+    def test_conditional(self):
+        assert normalize_decision("Conditional Offer") == ("Offer", "Conditional")
+        assert normalize_decision("con offer 雅思还差0.5") == ("Offer", "Conditional")
+        assert normalize_decision("有条件录取") == ("Offer", "Conditional")
+
+    def test_unconditional_checked_before_con(self):
+        # "uncon" 含 "con" 子串，必须先判 uncon
+        assert normalize_decision("Unconditional Offer") == ("Offer", "Unconditional")
+        assert normalize_decision("uncon了") == ("Offer", "Unconditional")
+
+    def test_rejected(self):
+        assert normalize_decision("Rejected") == ("Rejected", None)
+        assert normalize_decision("拒信") == ("Rejected", None)
+
+    def test_waitlist_interview_other(self):
+        assert normalize_decision("WL") == ("Waitlist", None)
+        assert normalize_decision("interview invite") == ("Interview", None)
+        assert normalize_decision("") == ("Other", None)
