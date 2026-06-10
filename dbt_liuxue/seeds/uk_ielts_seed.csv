@@ -1,0 +1,27 @@
+uk_uni_id,profile_level,ielts_overall,ielts_l,ielts_r,ielts_w,ielts_s,subject_hint,source_url,verified_at,valid_until
+manchester,standard,6.5,6.0,6.0,6.0,6.0,大多数理工科及人文社科项目,https://www.manchester.ac.uk/study/international/admissions/language-requirements/,2026-06-12,2027-09-01
+manchester,higher,7.0,6.5,6.5,6.5,6.5,Alliance MBS商学院硕士项目,https://www.alliancembs.manchester.ac.uk/study/masters/masters-entry-requirements/,2026-06-12,2027-09-01
+edinburgh,standard,6.5,5.5,5.5,5.5,5.5,大多数人文社科及理工科项目（较低档），https://study.ed.ac.uk/postgraduate/applying/entry-requirements/english-language,2026-06-12,2027-09-01
+edinburgh,higher,7.0,6.5,6.5,6.0,6.0,大多数研究型及授课型硕士标准要求，https://study.ed.ac.uk/programmes/postgraduate-research/278-economics,2026-06-12,2027-09-01
+edinburgh,higher_writing,7.0,6.5,6.5,7.0,6.5,Law LLM等人文法学类项目，https://study.ed.ac.uk/postgraduate/degrees?id=167&r=site%2Fview&edition=2025,2026-06-12,2027-09-01
+ucl,level1,6.5,6.0,6.0,6.0,6.0,工程、理工科、部分社科类项目,https://www.ucl.ac.uk/prospective-students/graduate/english-language-requirements,2026-06-12,2027-09-01
+ucl,level2,7.0,6.5,6.5,6.5,6.5,大多数授课型硕士（社科、艺术、人文）,https://www.ucl.ac.uk/prospective-students/graduate/english-language-requirements,2026-06-12,2027-09-01
+ucl,level3,7.0,7.0,7.0,7.0,7.0,语言学、部分教育类项目,https://www.ucl.ac.uk/prospective-students/graduate/english-language-requirements,2026-06-12,2027-09-01
+bristol,profile_e,6.5,6.0,6.0,6.0,6.0,大多数理工科及部分社科项目（Profile E），https://www.bristol.ac.uk/study/language-requirements/profile-e/,2026-06-12,2027-09-01
+bristol,profile_b,7.0,6.5,6.5,6.5,6.5,人文艺术及部分社科项目（Profile B），https://www.bristol.ac.uk/study/language-requirements/profile-b/,2026-06-12,2027-09-01
+bristol,profile_c,6.5,6.5,6.5,6.5,6.5,部分社科类项目（Profile C），https://www.bristol.ac.uk/study/language-requirements/profile-c/,2026-06-12,2027-09-01
+sheffield,standard,6.5,6.0,6.0,6.0,6.0,大多数理工科及社科项目（Standard），https://sheffield.ac.uk/postgraduate/english-language,2026-06-12,2027-09-01
+sheffield,good,7.0,6.5,6.5,6.5,6.5,部分人文社科及商科项目（Good），https://sheffield.ac.uk/postgraduate/english-language,2026-06-12,2027-09-01
+kcl,band_d,6.5,6.0,6.0,6.0,6.0,理工科、医学、护理、牙医、生命科学（Band D），https://www.kcl.ac.uk/study/postgraduate-taught/how-to-apply/entry-requirements/english-language-requirements,2026-06-12,2027-09-01
+kcl,band_b,7.0,6.5,6.5,6.5,6.5,社会科学、商学院、法学院、人文数字（Band B），https://www.kcl.ac.uk/study/postgraduate-taught/how-to-apply/entry-requirements/english-language-requirements,2026-06-12,2027-09-01
+kcl,band_c,7.0,6.0,6.5,6.5,6.0,人文艺术（除Band B部分系）（Band C），https://www.kcl.ac.uk/study/postgraduate-taught/how-to-apply/entry-requirements/english-language-requirements,2026-06-12,2027-09-01
+warwick,band_a,6.5,6.0,6.0,6.0,6.0,理工科、计算机、经济（授课）、WMG（Band A），https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
+warwick,band_b,7.0,6.5,6.5,6.5,6.5,商学院、法学、政治、社科、人文（Band B），https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
+warwick,band_c,7.5,7.0,7.0,7.0,7.0,英语文学、历史（授课）、戏剧表演等（Band C），https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
+glasgow,standard,6.5,6.0,6.0,6.0,6.0,大多数授课型硕士（MBA等主流项目），https://www.gla.ac.uk/postgraduate/taught/businessadministration/englangers/,2026-06-12,2027-09-01
+glasgow,higher,6.5,6.5,6.5,6.5,6.5,部分社科及政策类项目（如Public Policy），https://www.gla.ac.uk/postgraduate/taught/public-policy/englangers/,2026-06-12,2027-09-01
+leeds,standard,6.5,6.0,6.0,6.0,6.0,大多数授课型硕士项目，https://www.leeds.ac.uk/international-applying/doc/entry-requirements,2026-06-12,2027-09-01
+leeds,business,6.5,6.0,6.0,6.0,6.0,商学院硕士项目（Leeds University Business School），https://business.leeds.ac.uk/masters/doc/english-language-requirements-2,2026-06-12,2027-09-01
+southampton,band_c,6.5,6.0,6.0,6.0,6.0,大多数理工科项目（Band C），https://www.southampton.ac.uk/international/english-language-requirements/test-band-scores,2026-06-12,2027-09-01
+southampton,band_f,7.0,6.0,6.0,6.0,6.0,部分社科及管理类项目（Band F），https://www.southampton.ac.uk/international/english-language-requirements/test-band-scores,2026-06-12,2027-09-01
+southampton,band_g,7.0,6.5,6.5,6.5,6.5,大多数社科人文及商科项目（Band G），https://www.southampton.ac.uk/international/english-language-requirements/test-band-scores,2026-06-12,2027-09-01
