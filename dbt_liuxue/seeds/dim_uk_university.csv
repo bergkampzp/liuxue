@@ -1,0 +1,31 @@
+uk_uni_id,name_en,name_zh,qs_rank,list_is_public,banding_scheme
+oxford,University of Oxford,牛津大学,4,false,tier-985-211-other
+cambridge,University of Cambridge,剑桥大学,6,false,tier-985-211-other
+imperial,Imperial College London,帝国理工学院,2,false,none-published
+ucl,University College London,伦敦大学学院,9,true,list-in-out
+lse,London School of Economics,伦敦政治经济学院,50,false,none-published
+edinburgh,University of Edinburgh,爱丁堡大学,27,true,priority-band-ABCD
+manchester,University of Manchester,曼彻斯特大学,35,false,internal-list
+kcl,King's College London,伦敦国王学院,31,false,internal-list
+bristol,University of Bristol,布里斯托大学,51,true,accepted-list
+warwick,University of Warwick,华威大学,69,false,four-tier
+glasgow,University of Glasgow,格拉斯哥大学,79,false,internal-list
+leeds,University of Leeds,利兹大学,86,false,internal-list
+southampton,University of Southampton,南安普顿大学,80,false,internal-list
+sheffield,University of Sheffield,谢菲尔德大学,92,true,arwu-four-tier
+birmingham,University of Birmingham,伯明翰大学,76,false,internal-list
+nottingham,University of Nottingham,诺丁汉大学,97,false,internal-list
+durham,Durham University,杜伦大学,89,false,internal-list
+york,University of York,约克大学,146,false,none-published
+newcastle,Newcastle University,纽卡斯尔大学,129,false,internal-list
+liverpool,University of Liverpool,利物浦大学,165,false,internal-list
+exeter,University of Exeter,埃克塞特大学,169,false,internal-list
+bath,University of Bath,巴斯大学,150,false,internal-list
+cardiff,Cardiff University,卡迪夫大学,186,false,internal-list
+qmul,Queen Mary University of London,伦敦玛丽女王大学,120,false,internal-list
+lancaster,Lancaster University,兰卡斯特大学,141,false,internal-list
+st_andrews,University of St Andrews,圣安德鲁斯大学,104,false,none-published
+loughborough,Loughborough University,拉夫堡大学,212,false,internal-list
+leicester,University of Leicester,莱斯特大学,272,false,internal-list
+reading,University of Reading,雷丁大学,194,false,internal-list
+sussex,University of Sussex,萨塞克斯大学,246,false,internal-list

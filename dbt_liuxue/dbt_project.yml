@@ -18,3 +18,11 @@ models:
       +materialized: table
     dashboard:
       +materialized: table
+    uk:
+      staging:
+        +materialized: view
+      mart:
+        +materialized: table
+
+seeds:
+  liuxue_warehouse: {}

@@ -1,0 +1,25 @@
+src_major_category,tgt_subject_group,fit_level,required_prereqs,note,reviewed
+计算机类,CS与数据,对口,,本科CS/软工直申,false
+数学统计类,CS与数据,可转,编程基础;数据结构,需课程描述佐证,false
+电子电气类,CS与数据,可转,编程基础,EE转CS英国接受度高,false
+机械自动化类,CS与数据,可转,编程基础;数学,部分校仅收转换课程,false
+文科类,CS与数据,不可转,,可申conversion course另议,false
+计算机类,工科,对口,,,false
+电子电气类,工科,对口,,,false
+机械自动化类,工科,对口,,,false
+土木建筑类,工科,对口,,,false
+数学统计类,商科金融,可转,,金融数学/金工友好,false
+经济金融类,商科金融,对口,,,false
+管理类,商科金融,对口,,纯管理转金融部分校卡量化课,false
+文科类,商科金融,可转,数学基础,管理/市场方向可,false
+计算机类,商科金融,可转,,商业分析/金科友好,false
+经济金融类,社科,对口,,,false
+文科类,社科,对口,,,false
+文科类,传媒,对口,,,false
+管理类,传媒,可转,,营销传播方向,false
+文科类,教育,对口,,,false
+理科类,教育,可转,,学科教学方向,false
+理科类,理科,对口,,,false
+数学统计类,理科,对口,,,false
+法学类,法律,对口,,,false
+文科类,法律,可转,,部分LLM收非法本,false

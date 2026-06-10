@@ -1,0 +1,13 @@
+version: 2
+seeds:
+  - name: dim_uk_university
+    columns:
+      - name: uk_uni_id
+        tests: [unique, not_null]
+  - name: dim_major_mapping
+    columns:
+      - name: fit_level
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['对口', '可转', '不可转']

@@ -24,3 +24,24 @@ sources:
             description: 录取结果
           - name: source_url
             description: 来源 URL
+      - name: liuxue_admissions
+        description: 一亩三分地+寄托 中文站录取案例（英联邦反推核心源）
+        columns:
+          - name: school
+          - name: program
+          - name: degree
+          - name: decision
+          - name: decision_detail
+          - name: gpa
+          - name: ielts
+          - name: ielts_l
+          - name: ielts_r
+          - name: ielts_w
+          - name: ielts_s
+          - name: undergrad_school
+          - name: undergrad_major
+          - name: country
+          - name: source
+          - name: source_url
+      - name: uk_ielts_requirements
+        description: 英国大学雅思要求（官方采集）
