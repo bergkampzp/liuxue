@@ -16,7 +16,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DB_HOST="${DB_HOST:-localhost}"
-DB_PORT="${DB_PORT:-5433}"
+DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-warehouse}"
 DB_USER="${DB_USER:-postgres}"
 DB_PASS="${DB_PASS:-postgres}"
@@ -93,6 +93,32 @@ run_dbt() {
     dbt run || { echo "dbt run 失败"; exit 1; }
 
     log "dbt 完成"
+}
+
+# ── uk: 英联邦支线 ──────────────────────────────────────────────────────────────
+DBT_BIN="${DBT_BIN:-}"
+resolve_dbt() {
+    if [ -n "$DBT_BIN" ]; then return; fi
+    if command -v dbt &>/dev/null; then
+        DBT_BIN="dbt"
+    elif [ -x /home/zp/anaconda3/bin/dbt ]; then
+        DBT_BIN="/home/zp/anaconda3/bin/dbt"
+    else
+        echo "❌ 找不到 dbt。请 pip install dbt-postgres 或设置 DBT_BIN"
+        exit 1
+    fi
+}
+
+run_uk() {
+    ensure_db
+    resolve_dbt
+    log "执行英联邦支线: migration → seed → dbt uk模型 → 测试"
+    psql "$DB_DSN" -f "$SCRIPT_DIR/migrations/001_uk_schema.sql"
+    cd "$SCRIPT_DIR/dbt_liuxue"
+    "$DBT_BIN" seed --select dim_uk_university dim_major_mapping uk_ielts_seed
+    "$DBT_BIN" run --select models/uk
+    "$DBT_BIN" test --select models/uk dim_uk_university dim_major_mapping
+    log "英联邦支线完成"
 }
 
 # ── dashboard ───────────────────────────────────────────────────────────
@@ -184,6 +210,9 @@ case "${1:-}" in
     dbt)
         run_dbt
         ;;
+    uk)
+        run_uk
+        ;;
     dashboard)
         dashboard
         ;;
@@ -194,11 +223,12 @@ case "${1:-}" in
         all
         ;;
     *)
-        echo "用法: $0 {crawl|dbt|dashboard|status|all}"
+        echo "用法: $0 {crawl|dbt|uk|dashboard|status|all}"
         echo ""
         echo "  crawl [--majors 'CS,DS' --max-pages 5 --dry-run]"
         echo "      爬取 GradCafe 录取数据"
         echo "  dbt     运行 dbt 模型 (staging→intermediate→features→mart→dashboard)"
+        echo "  uk      英联邦支线: migration+seed+uk模型+测试"
         echo "  dashboard  BI 看板统计 + Metabase 提示"
         echo "  status   查看数据统计"
         echo "  all      一键执行完整管线"
