@@ -37,3 +37,8 @@ class TestParseEnglish:
 
     def test_bare_number_toefl(self):
         assert parse_english("108")[0] == 108
+
+    def test_no_ielts_total_no_subscores(self):
+        # 无雅思总分时不得填充小分（防 TOEFL/GPA 行的字母数字垃圾）
+        assert parse_english("TOEFL 105 L8 R7 W6 S7")[2:] == (None, None, None, None)
+        assert parse_english("GPA 3.8 L8 R7 W6 S7")[2:] == (None, None, None, None)

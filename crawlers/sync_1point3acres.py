@@ -235,22 +235,24 @@ def parse_english(text: str) -> tuple[int | None, float | None, float | None,
 
     # 小分: L7R7.5W6S6.5 / 听7读7.5写6说6.5
     # 注意：需要限定搜索范围在 IELTS 总分匹配之后，防止 IELTS 字母中的 L/S 被误匹配
-    search_text = text
-    if m:  # m 是上面匹配到的 IELTS/雅思 总分
-        search_text = text[m.end():]  # 从 IELTS 总分之后开始搜索小分
+    # IELTS/雅思总分命中时，小分搜索限定在总分之后（防 IELTS 字母误匹配）
+    if ielts is not None:
+        search_text = text
+        if m:
+            search_text = text[m.end():]  # 从 IELTS 总分之后开始搜索小分
 
-    pairs = {"l": r"[Ll听]\s*(\d\.?\d?)", "r": r"[Rr读]\s*(\d\.?\d?)",
-             "w": r"[Ww写]\s*(\d\.?\d?)", "s": r"[Ss说]\s*(\d\.?\d?)"}
-    subs = {}
-    for key, pat in pairs.items():
-        mm = re.search(pat, search_text)
-        if mm:
-            v = float(mm.group(1))
-            if 3.0 <= v <= 9.0:
-                subs[key] = v
+        pairs = {"l": r"[Ll听]\s*(\d\.?\d?)", "r": r"[Rr读]\s*(\d\.?\d?)",
+                 "w": r"[Ww写]\s*(\d\.?\d?)", "s": r"[Ss说]\s*(\d\.?\d?)"}
+        subs = {}
+        for key, pat in pairs.items():
+            mm = re.search(pat, search_text)
+            if mm:
+                v = float(mm.group(1))
+                if 3.0 <= v <= 9.0:
+                    subs[key] = v
 
-    if len(subs) >= 2:   # 至少命中2项才认为是小分写法,防误匹配
-        l, r, w, s = subs.get("l"), subs.get("r"), subs.get("w"), subs.get("s")
+        if len(subs) >= 2:   # 至少命中2项才认为是小分写法,防误匹配
+            l, r, w, s = subs.get("l"), subs.get("r"), subs.get("w"), subs.get("s")
 
     if not toefl and not ielts:
         mm = re.search(r"(\d{3})", text)
