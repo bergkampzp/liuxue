@@ -52,6 +52,7 @@ VALUES %s
 ON CONFLICT (source_url) DO UPDATE SET
     decision = EXCLUDED.decision,
     decision_detail = EXCLUDED.decision_detail,
+    comment = EXCLUDED.comment,
     gpa = EXCLUDED.gpa,
     crawled_at = EXCLUDED.crawled_at
 """
@@ -305,12 +306,12 @@ def main():
             for r in records:
                 rows.append((
                     r["school"], r["program"], r["degree"],
-                    r["season"], r["year"], r["decision"], r.get("decision_detail"),
+                    r["season"], r["year"], r["decision"], r["decision_detail"],
                     r["gpa"], r["gre"], r["gre_v"], r["gre_aw"],
                     r["toefl"], r["ielts"],
-                    r.get("ielts_l"), r.get("ielts_r"), r.get("ielts_w"), r.get("ielts_s"),
+                    r["ielts_l"], r["ielts_r"], r["ielts_w"], r["ielts_s"],
                     r["undergrad_school"], r["undergrad_major"], r.get("country"),
-                    r.get("comment"), r["source_url"],
+                    r["comment"], r["source_url"],
                     "1point3acres", now,
                 ))
             with psycopg2.connect(DEFAULT_DSN) as conn:

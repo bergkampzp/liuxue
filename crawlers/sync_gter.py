@@ -47,6 +47,7 @@ VALUES %s
 ON CONFLICT (source_url) DO UPDATE SET
     decision = EXCLUDED.decision,
     decision_detail = EXCLUDED.decision_detail,
+    comment = EXCLUDED.comment,
     gpa = EXCLUDED.gpa,
     crawled_at = EXCLUDED.crawled_at
 """
@@ -74,22 +75,6 @@ def fetch_page(page: int) -> list[dict]:
     except Exception as e:
         log.warning("Page %d 失败: %s", page, e)
         return []
-
-
-def parse_detail_page(html: str, detail_url: str) -> dict:
-    """解析详情页获取补充信息（学校、offer 种类、GPA等登录可见字段设null）"""
-    soup = BeautifulSoup(html, "html.parser")
-    info: dict[str, Any] = {}
-
-    # 录取结果
-    result_el = soup.select_one(".offer-detail .apply-results, .detail-result, .results-tag")
-    if result_el:
-        info["decision"] = result_el.get_text(strip=True)
-
-    # GPA/语言等敏感字段标记
-    info["gpa"] = None
-    info["comment"] = None
-    return info
 
 
 def build_record(item: dict) -> dict:
