@@ -1,0 +1,8 @@
+# 本地数据库凭据（含密码，不入库）
+dbt_liuxue/profiles.yml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

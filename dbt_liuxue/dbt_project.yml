@@ -1,0 +1,20 @@
+name: liuxue_warehouse
+version: "0.1.0"
+config-version: 2
+profile: liuxue
+
+model-paths: ["models"]
+target-path: "target"
+
+models:
+  liuxue_warehouse:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    features:
+      +materialized: table
+    mart:
+      +materialized: table
+    dashboard:
+      +materialized: table
