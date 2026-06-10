@@ -23,6 +23,8 @@ import psycopg2, psycopg2.extras
 import requests
 from bs4 import BeautifulSoup
 
+from normalize import normalize_decision
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("sync_gter")
 
@@ -38,11 +40,14 @@ PAGE_SIZE = 20
 
 UPSERT_SQL = """
 INSERT INTO raw.liuxue_admissions
-    (school, program, degree, season, year, decision, comment, source_url, source, crawled_at)
+    (school, program, degree, season, year, decision, decision_detail, gpa,
+     gre, gre_v, gre_aw, toefl, ielts, ielts_l, ielts_r, ielts_w, ielts_s,
+     undergrad_school, undergrad_major, country, comment, source_url, source, crawled_at)
 VALUES %s
 ON CONFLICT (source_url) DO UPDATE SET
     decision = EXCLUDED.decision,
-    comment = EXCLUDED.comment,
+    decision_detail = EXCLUDED.decision_detail,
+    gpa = EXCLUDED.gpa,
     crawled_at = EXCLUDED.crawled_at
 """
 
@@ -124,18 +129,7 @@ def build_record(item: dict) -> dict:
         year = 2000 + int(m2.group(1))
         season = m2.group(2)
 
-    decision_raw = (item.get("apply_results") or "").strip()
-    decision = "Other"
-    if decision_raw:
-        dr = decision_raw.lower()
-        if "offer" in dr or "ad" in dr:
-            decision = "Offer"
-        elif "reject" in dr or "拒" in dr:
-            decision = "Rejected"
-        elif "wait" in dr:
-            decision = "Waitlist"
-        elif "interview" in dr:
-            decision = "Interview"
+    decision, decision_detail = normalize_decision(item.get("apply_results") or "")
 
     return {
         "school": school,
@@ -144,6 +138,20 @@ def build_record(item: dict) -> dict:
         "season": season,
         "year": year,
         "decision": decision,
+        "decision_detail": decision_detail,
+        "gpa": None,
+        "gre": None,
+        "gre_v": None,
+        "gre_aw": None,
+        "toefl": None,
+        "ielts": None,
+        "ielts_l": None,
+        "ielts_r": None,
+        "ielts_w": None,
+        "ielts_s": None,
+        "undergrad_school": None,
+        "undergrad_major": None,
+        "country": None,
         "comment": (item.get("message") or "")[:500],
         "source_url": item.get("url", ""),
         "source": "gter",
@@ -202,7 +210,11 @@ def main():
                 for r in new_records:
                     rows.append((
                         r["school"], r["program"], r["degree"],
-                        r["season"], r["year"], r["decision"],
+                        r["season"], r["year"], r["decision"], r.get("decision_detail"),
+                        r.get("gpa"), r.get("gre"), r.get("gre_v"), r.get("gre_aw"),
+                        r.get("toefl"), r.get("ielts"),
+                        r.get("ielts_l"), r.get("ielts_r"), r.get("ielts_w"), r.get("ielts_s"),
+                        r.get("undergrad_school"), r.get("undergrad_major"), r.get("country"),
                         r.get("comment"), r["source_url"],
                         "gter", now,
                     ))

@@ -24,13 +24,18 @@ import psycopg2, psycopg2.extras
 import requests
 from bs4 import BeautifulSoup
 
+from normalize import normalize_decision
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("sync_1point3acres")
 
 BASE_URL = "https://www.1point3acres.com/bbs"
-FORUM_URL = f"{BASE_URL}/forum-82-{{page}}.html"
+FORUM_URL = f"{BASE_URL}/forum-{{fid}}-{{page}}.html"
 DEFAULT_DSN = os.environ.get("WAREHOUSE_DSN",
     "host=localhost port=5432 dbname=warehouse user=postgres password=postgres")
+
+# fid → 国家。82=美研版。英联邦版块 fid 上线前用浏览器核实后补充。
+FID_COUNTRY = {82: "US"}
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
@@ -40,11 +45,13 @@ HEADERS = {
 
 UPSERT_SQL = """
 INSERT INTO raw.liuxue_admissions
-    (school, program, degree, season, year, decision, gpa, gre, gre_v, gre_aw,
-     toefl, ielts, undergrad_school, undergrad_major, comment, source_url, source, crawled_at)
+    (school, program, degree, season, year, decision, decision_detail, gpa,
+     gre, gre_v, gre_aw, toefl, ielts, ielts_l, ielts_r, ielts_w, ielts_s,
+     undergrad_school, undergrad_major, country, comment, source_url, source, crawled_at)
 VALUES %s
 ON CONFLICT (source_url) DO UPDATE SET
     decision = EXCLUDED.decision,
+    decision_detail = EXCLUDED.decision_detail,
     gpa = EXCLUDED.gpa,
     crawled_at = EXCLUDED.crawled_at
 """
@@ -56,6 +63,7 @@ def parse_args():
     p.add_argument("--cookie-file", type=str, default=None, help="Cookie 文件路径")
     p.add_argument("--max-pages", type=int, default=100, help="最大页数（默认 100）")
     p.add_argument("--dry-run", action="store_true", help="只爬不写入")
+    p.add_argument("--fid", type=int, default=82, help="版块ID(82=美研)")
     return p.parse_args()
 
 
@@ -150,16 +158,7 @@ def parse_list_page(html: str) -> list[dict]:
                 year = 2000 + int(m.group(1))
 
             # 录取结果标准化
-            decision = "Other"
-            dr = result_info.lower()
-            if "ad" in dr or "offer" in dr:
-                decision = "Offer"
-            elif "reject" in dr or "rej" in dr:
-                decision = "Rejected"
-            elif "wl" in dr or "wait" in dr:
-                decision = "Waitlist"
-            elif "interview" in dr:
-                decision = "Interview"
+            decision, decision_detail = normalize_decision(result_info)
 
             # source_url
             link = tr.select_one("a.xst, a.s.xst")
@@ -178,6 +177,7 @@ def parse_list_page(html: str) -> list[dict]:
                 "season": season_info,
                 "year": year,
                 "decision": decision,
+                "decision_detail": decision_detail,
                 "gpa": gpa,
                 "gre": gre,
                 "gre_v": None,
@@ -280,7 +280,7 @@ def main():
     total_new = 0
 
     for page in range(1, args.max_pages + 1):
-        url = FORUM_URL.format(page=page)
+        url = FORUM_URL.format(fid=args.fid, page=page)
         try:
             resp = requests.get(url, headers=headers, timeout=30)
             if resp.status_code != 200:
@@ -296,16 +296,20 @@ def main():
             log.info("第 %d 页无结构化数据，可能已到尾页", page)
             break
 
+        for r in records:
+            r["country"] = FID_COUNTRY.get(args.fid)
+
         if not args.dry_run:
             now = datetime.now(timezone.utc)
             rows = []
             for r in records:
                 rows.append((
                     r["school"], r["program"], r["degree"],
-                    r["season"], r["year"], r["decision"],
+                    r["season"], r["year"], r["decision"], r.get("decision_detail"),
                     r["gpa"], r["gre"], r["gre_v"], r["gre_aw"],
                     r["toefl"], r["ielts"],
-                    r["undergrad_school"], r["undergrad_major"],
+                    r.get("ielts_l"), r.get("ielts_r"), r.get("ielts_w"), r.get("ielts_s"),
+                    r["undergrad_school"], r["undergrad_major"], r.get("country"),
                     r.get("comment"), r["source_url"],
                     "1point3acres", now,
                 ))
