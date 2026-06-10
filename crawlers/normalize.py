@@ -11,16 +11,17 @@ def normalize_decision(raw: str) -> tuple[str, str | None]:
 
     detail = None
     # 顺序敏感：uncon 先于 con（子串包含）
-    if "uncon" in dr or "无条件" in dr:
+    if re.search(r"\buncon", dr, re.ASCII) or "无条件" in dr:
         detail = "Unconditional"
-    elif "con" in dr or "条件" in dr:
+    elif re.search(r"\bcon(?:ditional)?\b", dr, re.ASCII) or "条件" in dr:
         detail = "Conditional"
 
     if "offer" in dr or re.search(r"\bad\b", dr, re.ASCII) or detail:
         return ("Offer", detail)
     if "reject" in dr or "rej" in dr or "拒" in dr:
         return ("Rejected", None)
-    if "wl" in dr or "wait" in dr:
+    # re.ASCII: 中文不算\w，使 \b 在中英混排处(如"AD小奖")正确成立
+    if re.search(r"\bwl\b", dr, re.ASCII) or "wait" in dr:
         return ("Waitlist", None)
     if "interview" in dr or "面试" in dr:
         return ("Interview", None)

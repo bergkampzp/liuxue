@@ -30,3 +30,12 @@ class TestNormalizeDecision:
         assert normalize_decision("WL") == ("Waitlist", None)
         assert normalize_decision("interview invite") == ("Interview", None)
         assert normalize_decision("") == ("Other", None)
+
+    def test_con_substring_not_misjudged(self):
+        # "con"子串误判回归: congratulations/economics 不是 con offer
+        assert normalize_decision("congratulations") == ("Other", None)
+        assert normalize_decision("economics offer from lse") == ("Offer", None)
+
+    def test_wl_substring_not_misjudged(self):
+        # "wl"子串误判回归: owl 不是 waitlist
+        assert normalize_decision("owl") == ("Other", None)
