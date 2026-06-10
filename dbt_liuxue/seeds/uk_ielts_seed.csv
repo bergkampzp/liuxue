@@ -16,8 +16,8 @@ kcl,band_d,6.5,6.0,6.0,6.0,6.0,理工科、医学、护理、牙医、生命科�
 kcl,band_b,7.0,6.5,6.5,6.5,6.5,社会科学、商学院、法学院、人文数字（Band B）,https://www.kcl.ac.uk/study/postgraduate-taught/how-to-apply/entry-requirements/english-language-requirements,2026-06-12,2027-09-01
 kcl,band_c,7.0,6.0,6.5,6.5,6.0,人文艺术（除Band B部分系）（Band C）,https://www.kcl.ac.uk/study/postgraduate-taught/how-to-apply/entry-requirements/english-language-requirements,2026-06-12,2027-09-01
 warwick,band_a,6.5,6.0,6.0,6.0,6.0,理工科、计算机、经济（授课）、WMG（Band A）,https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
-warwick,band_b,7.0,6.5,6.5,6.5,6.5,商学院、法学、政治、社科、人文（Band B）,https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
-warwick,band_c,7.5,7.0,7.0,7.0,7.0,英语文学、历史（授课）、戏剧表演等（Band C）,https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
+warwick,band_b,7.0,7.0,7.0,7.0,7.0,商学院/法学/政治/社科/人文（Band B官网混合档取保守值7.0）,https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
+warwick,band_c,7.5,7.5,7.5,7.5,7.5,英语文学/历史（授课）/戏剧表演（Band C官网混合档取保守值7.5）,https://warwick.ac.uk/study/postgraduate/apply/english/,2026-06-12,2027-09-01
 glasgow,standard,6.5,6.0,6.0,6.0,6.0,大多数授课型硕士（MBA等主流项目）,https://www.gla.ac.uk/postgraduate/taught/businessadministration/englangers/,2026-06-12,2027-09-01
 glasgow,higher,6.5,6.5,6.5,6.5,6.5,部分社科及政策类项目（如Public Policy）,https://www.gla.ac.uk/postgraduate/taught/public-policy/englangers/,2026-06-12,2027-09-01
 leeds,standard,6.5,6.0,6.0,6.0,6.0,大多数授课型硕士项目,https://www.leeds.ac.uk/international-applying/doc/entry-requirements,2026-06-12,2027-09-01
