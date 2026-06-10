@@ -5,4 +5,5 @@ models:
       - name: ielts_overall
         tests: [not_null]
       - name: source_url
-        tests: [not_null]
+        tests:
+          - not_null
