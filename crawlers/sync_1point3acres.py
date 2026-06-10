@@ -203,7 +203,7 @@ def parse_gpa(text: str) -> float | None:
     m = re.search(r"(\d+\.?\d*)", text)
     if m:
         v = float(m.group(1))
-        return v if 0 < v <= 4.0 or 0 < v <= 100 else min(v, 4.0)
+        return v if 0 < v <= 100 else None
     return None
 
 
