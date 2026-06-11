@@ -7,3 +7,29 @@ models:
       - name: source_url
         tests:
           - not_null
+
+  - name: stg_uk_official_lists
+    description: 官方认可名单归一化（cn_name_raw → cn_uni_id），未命中行保留NULL
+    columns:
+      - name: uk_uni_id
+        tests: [not_null]
+      - name: cn_name_raw
+        tests: [not_null]
+      - name: band
+        tests: [not_null]
+
+  - name: entry_requirement
+    description: 统一选校定位分数线（官方优先 > TestDaily种子）
+    columns:
+      - name: min_avg_score
+        tests: [not_null]
+      - name: source_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['official_web', 'official_pdf', 'aggregator']
+      - name: confidence
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['high', 'medium', 'low']

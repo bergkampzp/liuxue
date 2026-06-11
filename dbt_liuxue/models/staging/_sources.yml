@@ -45,3 +45,13 @@ sources:
           - name: source_url
       - name: uk_ielts_requirements
         description: 英国大学雅思要求（官方采集）
+      - name: uk_official_lists
+        description: 英国大学官方中国院校认可名单（UCL/Bristol/Edinburgh/Sheffield四源）
+        columns:
+          - name: id
+          - name: uk_uni_id
+          - name: cn_name_raw
+          - name: band
+          - name: min_avg_score
+          - name: source_url
+          - name: fetched_at

@@ -24,3 +24,15 @@ seeds:
     columns:
       - name: alias
         tests: [unique, not_null]
+  - name: testdaily_lines_seed
+    description: TestDaily聚合的英国大学对中国院校分数线种子数据
+    columns:
+      - name: uk_uni_id
+        tests: [not_null]
+      - name: min_avg_score
+        tests: [not_null]
+      - name: source_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['official_web', 'official_pdf', 'aggregator']
