@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# 视觉伴侣会话产物
+.superpowers/
