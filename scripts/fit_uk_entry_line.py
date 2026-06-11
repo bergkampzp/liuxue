@@ -269,12 +269,12 @@ def main():
     import psycopg2
     import psycopg2.extras
 
-    db_url = os.environ.get(
-        "DATABASE_URL",
-        f"postgresql://postgres:postgres@localhost:{os.environ.get('DB_PORT', '5432')}/liuxue",
+    dsn = os.environ.get(
+        "WAREHOUSE_DSN",
+        "host=localhost port=5432 dbname=warehouse user=postgres password=postgres",
     )
 
-    conn = psycopg2.connect(db_url)
+    conn = psycopg2.connect(dsn)
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # 读 int_uk_cases_tagged
