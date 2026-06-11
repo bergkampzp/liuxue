@@ -2,6 +2,7 @@ import re
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from rapidfuzz import fuzz, process
 
 from api.db import fetch_all
 
@@ -85,6 +86,50 @@ def classify_major(raw: str) -> str | None:
     return None
 
 
+def resolve_cn_university(name: str) -> dict | None:
+    """校名→维表行: 精确(中/英/别名)→模糊(≥85分)"""
+    rows = fetch_all("""
+        SELECT d.cn_uni_id, d.name_zh, d.tier_label FROM dim_cn_university d
+        WHERE d.name_zh = %s OR lower(d.name_en) = lower(%s)
+        UNION
+        SELECT d.cn_uni_id, d.name_zh, d.tier_label
+        FROM cn_university_alias a JOIN dim_cn_university d USING (cn_uni_id)
+        WHERE a.alias = %s
+    """, (name, name, name))
+    if rows:
+        return rows[0]
+    all_rows = fetch_all("SELECT cn_uni_id, name_zh, tier_label FROM dim_cn_university")
+    best = process.extractOne(name, [r["name_zh"] for r in all_rows], scorer=fuzz.ratio)
+    if best and best[1] >= 85:
+        return next(r for r in all_rows if r["name_zh"] == best[0])
+    return None
+
+
+def query_match_rows(cn_tier: str, subject_group: str) -> list[dict]:
+    return fetch_all("""
+        SELECT * FROM mart_uk_school_match_v1
+        WHERE cn_tier = %s AND subject_group IN (%s, '通用')
+    """, (cn_tier, subject_group))
+
+
+SOURCE_LABEL = {
+    "official_web": "官方公布门槛",
+    "official_pdf": "官方公布门槛",
+    "aggregator": "第三方整理参考线，建议核对官网",
+    "case_inferred": "历史案例估计参考线",
+}
+
+
+def bucket_of(gap: float) -> str:
+    if gap >= 2:
+        return "保"
+    if gap >= -2:
+        return "匹"
+    if gap >= -5:
+        return "冲"
+    return "不建议"
+
+
 class MajorFitIn(BaseModel):
     undergrad_major: str
     tgt_subject_group: str
@@ -112,4 +157,84 @@ def major_fit(body: MajorFitIn):
         "candidates": sorted(MAJOR_KEYWORDS.keys()),
         "note": "请从候选大类中确认你的本科专业归属",
         "reviewed": False,
+    }
+
+
+class PositionIn(BaseModel):
+    undergrad_school: str
+    avg_score: float
+    undergrad_major: str
+    tgt_subject_group: str
+    ielts_overall: float | None = None
+    ielts_l: float | None = None
+    ielts_r: float | None = None
+    ielts_w: float | None = None
+    ielts_s: float | None = None
+
+
+@app.post("/position")
+def position(body: PositionIn):
+    uni = resolve_cn_university(body.undergrad_school)
+    if uni is None:
+        raise HTTPException(422, detail={"msg": "未识别本科院校，请确认校名",
+                                         "hint": "尝试输入全称，如'江苏大学'"})
+    rows = query_match_rows(uni["tier_label"], body.tgt_subject_group)
+    schools = []
+    for row in rows:
+        gap = round(body.avg_score - float(row["min_avg_score"]), 1)
+        tier = bucket_of(gap)
+        ielts_flag = None
+        checks = [("总分", body.ielts_overall, row.get("ielts_overall")),
+                  ("写作", body.ielts_w, row.get("ielts_w")),
+                  ("口语", body.ielts_s, row.get("ielts_s"))]
+        for label, have, need in checks:
+            if have is not None and need is not None and float(have) < float(need):
+                ielts_flag = f"雅思{label}差{round(float(need) - float(have), 1)}"
+                tier = {"保": "匹", "匹": "冲", "冲": "不建议", "不建议": "不建议"}[tier]
+                break
+        explanation = (
+            f"{SOURCE_LABEL[row['source_type']]}：{uni['tier_label']}背景约需均分"
+            f"{row['min_avg_score']}，你的均分{body.avg_score}（差距{gap:+}）。"
+            + (f"{ielts_flag}，按降一档处理。" if ielts_flag else ""))
+        if row["source_type"] != "official_web" and "参考线" not in explanation:
+            explanation += "（参考线，非录取承诺）"
+        schools.append({
+            "uk_uni_id": row["uk_uni_id"],
+            "name_zh": row["name_zh"],
+            "qs_rank": row["qs_rank"],
+            "tier": tier,
+            "gap": gap,
+            "min_avg_score": float(row["min_avg_score"]),
+            "source_type": row["source_type"],
+            "source_url": row["source_url"],
+            "confidence": row["confidence"],
+            "ielts_flag": ielts_flag,
+            "explanation": explanation,
+        })
+    schools.sort(key=lambda x: (x["qs_rank"] or 999))
+    # 功能3嵌入: 复用 MVP-0 的 classify_major + 规则表
+    cat = classify_major(body.undergrad_major)
+    major_fit = None
+    if cat:
+        for rule in query_major_rules():
+            if (rule["src_major_category"] == cat
+                    and rule["tgt_subject_group"] == body.tgt_subject_group):
+                major_fit = {
+                    "src_major_category": cat,
+                    "fit_level": rule["fit_level"],
+                    "required_prereqs": rule.get("required_prereqs") or "",
+                }
+                break
+        # 回退: 找不到 (cat × group) 精确行时返回基础判定，保证非 None
+        if major_fit is None:
+            major_fit = {
+                "src_major_category": cat,
+                "fit_level": "未知方向",
+                "required_prereqs": "",
+            }
+    return {
+        "cn_university": uni,
+        "schools": schools,
+        "major_fit": major_fit,
+        "waitlist_hint": "曼大/KCL等校精确线即将上线，可在 /waitlist 留邮箱",
     }
