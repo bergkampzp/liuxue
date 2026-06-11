@@ -49,10 +49,11 @@ ucl_official AS (
       AND s.cn_uni_id IS NOT NULL
 ),
 
--- ── 3. Edinburgh 官方线（priority-list 院校 → 保守取 80%）────────────────────────
--- 官网原文："Band B: a minimum of 80% awarded by a university on our Priority List"
+-- ── 3. Edinburgh 官方线（priority-list 院校 → 保守取 85%）────────────────────────
+-- 官网原文："Band A requires 85%"
+-- "Band B: a minimum of 80% awarded by a university on our Priority List"
 -- "Band C: a minimum of 80%, awarded by a university on our Priority List"
--- priority-list DB行未细分Band字母，取 Band B/C 下限 80% 作为保守值
+-- priority-list DB行未细分Band字母，取保守上限85% — 防Band A项目误报达标
 -- (law-school / art-college 暂排除，留待 P1 处理)
 edinburgh_official AS (
     SELECT DISTINCT
@@ -60,7 +61,7 @@ edinburgh_official AS (
         '通用'                          AS subject_group,
         s.cn_tier,
         s.cn_uni_id,
-        80.0                            AS min_avg_score,
+        85.0                            AS min_avg_score,
         'official_web'                  AS source_type,
         s.source_url,
         'high'                          AS confidence
