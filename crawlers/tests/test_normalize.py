@@ -39,3 +39,8 @@ class TestNormalizeDecision:
     def test_wl_substring_not_misjudged(self):
         # "wl"子串误判回归: owl 不是 waitlist
         assert normalize_decision("owl") == ("Other", None)
+
+    def test_reject_with_tiaojian_not_offer(self):
+        # 拒信文本含"条件"不得被 detail 短路成 Offer
+        assert normalize_decision("拒信，条件不符") == ("Rejected", None)
+        assert normalize_decision("reject: conditions not met") == ("Rejected", None)

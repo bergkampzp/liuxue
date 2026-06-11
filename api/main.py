@@ -1,3 +1,5 @@
+import re
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -70,8 +72,16 @@ def query_major_rules() -> list[dict]:
 def classify_major(raw: str) -> str | None:
     low = raw.lower()
     for cat, kws in MAJOR_KEYWORDS.items():
-        if any(kw in low for kw in kws):
-            return cat
+        for kw in kws:
+            # Short ASCII keywords (≤3 chars, e.g. cs/ee/law) need word boundary
+            # to avoid substring false positives (e.g. "cs" in "economics").
+            # Long keywords and Chinese keywords use plain substring match.
+            if kw.isascii() and len(kw) <= 3:
+                if re.search(r'\b' + re.escape(kw) + r'\b', low, re.ASCII):
+                    return cat
+            else:
+                if kw in low:
+                    return cat
     return None
 
 

@@ -3,7 +3,7 @@
 # run-pipeline.sh — 留学 AI 数据管线管理脚本
 #
 # 对齐 power-v2 数据平台的模式：sync → dbt → dashboard
-# 依赖：dest-postgres Docker 容器（port 5433）
+# 依赖：dest-postgres Docker 容器（port 5432）
 #
 # 用法:
 #   ./run-pipeline.sh crawl     # 爬取 GradCafe 数据
@@ -55,7 +55,7 @@ liuxue:
     local:
       type: postgres
       host: localhost
-      port: 5433
+      port: 5432
       user: postgres
       password: postgres
       dbname: warehouse
@@ -112,6 +112,7 @@ resolve_dbt() {
 run_uk() {
     ensure_db
     resolve_dbt
+    ensure_dbt_profile
     log "执行英联邦支线: migration → seed → dbt uk模型 → 测试"
     psql "$DB_DSN" -f "$SCRIPT_DIR/migrations/001_uk_schema.sql"
     cd "$SCRIPT_DIR/dbt_liuxue"

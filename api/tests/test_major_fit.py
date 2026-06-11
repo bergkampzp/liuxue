@@ -33,3 +33,11 @@ def test_no_match_returns_candidates(monkeypatch):
     body = resp.json()
     assert body["fit_level"] == "待人工确认"   # 架构决策: 不在线LLM即时判
     assert isinstance(body["candidates"], list)
+
+
+def test_english_major_no_cs_substring_misjudge(monkeypatch):
+    # "Economics"含"cs"子串、"engineering"含"ee"子串——不得误归计算机/电气类
+    monkeypatch.setattr(main, "query_major_rules", lambda: [])
+    from api.main import classify_major
+    assert classify_major("Economics") == "经济金融类"      # econom 长关键词命中
+    assert classify_major("engineering") != "电子电气类"    # ee 词边界不命中

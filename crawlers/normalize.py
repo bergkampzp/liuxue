@@ -16,10 +16,11 @@ def normalize_decision(raw: str) -> tuple[str, str | None]:
     elif re.search(r"\bcon(?:ditional)?\b", dr, re.ASCII) or "条件" in dr:
         detail = "Conditional"
 
-    if "offer" in dr or re.search(r"\bad\b", dr, re.ASCII) or detail:
-        return ("Offer", detail)
+    # Reject判断必须在 detail 短路之前：拒信含"条件"不得误判为 Offer
     if "reject" in dr or "rej" in dr or "拒" in dr:
         return ("Rejected", None)
+    if "offer" in dr or re.search(r"\bad\b", dr, re.ASCII) or detail:
+        return ("Offer", detail)
     # re.ASCII: 中文不算\w，使 \b 在中英混排处(如"AD小奖")正确成立
     if re.search(r"\bwl\b", dr, re.ASCII) or "wait" in dr:
         return ("Waitlist", None)
