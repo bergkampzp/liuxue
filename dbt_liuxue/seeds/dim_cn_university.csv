@@ -1,0 +1,113 @@
+cn_uni_id,name_zh,name_en,is_985,is_211,tier_label
+tsinghua,清华大学,Tsinghua University,true,true,985
+pku,北京大学,Peking University,true,true,985
+fudan,复旦大学,Fudan University,true,true,985
+sjtu,上海交通大学,Shanghai Jiao Tong University,true,true,985
+zju,浙江大学,Zhejiang University,true,true,985
+nju,南京大学,Nanjing University,true,true,985
+ustc,中国科学技术大学,University of Science and Technology of China,true,true,985
+hit,哈尔滨工业大学,Harbin Institute of Technology,true,true,985
+xjtu,西安交通大学,Xian Jiaotong University,true,true,985
+buaa,北京航空航天大学,Beihang University,true,true,985
+tongji,同济大学,Tongji University,true,true,985
+tju,天津大学,Tianjin University,true,true,985
+nankai,南开大学,Nankai University,true,true,985
+seu,东南大学,Southeast University,true,true,985
+hust,华中科技大学,Huazhong University of Science and Technology,true,true,985
+whu,武汉大学,Wuhan University,true,true,985
+sysu,中山大学,Sun Yat-sen University,true,true,985
+scu,四川大学,Sichuan University,true,true,985
+jlu,吉林大学,Jilin University,true,true,985
+xmu,厦门大学,Xiamen University,true,true,985
+sdu,山东大学,Shandong University,true,true,985
+csu,中南大学,Central South University,true,true,985
+dlut,大连理工大学,Dalian University of Technology,true,true,985
+scut,华南理工大学,South China University of Technology,true,true,985
+uestc,电子科技大学,University of Electronic Science and Technology of China,true,true,985
+cqu,重庆大学,Chongqing University,true,true,985
+lzu,兰州大学,Lanzhou University,true,true,985
+neu,东北大学,Northeastern University,true,true,985
+hnu,湖南大学,Hunan University,true,true,985
+bit,北京理工大学,Beijing Institute of Technology,true,true,985
+bnu,北京师范大学,Beijing Normal University,true,true,985
+cau,中国农业大学,China Agricultural University,true,true,985
+nudt,国防科技大学,National University of Defense Technology,true,true,985
+muc,中央民族大学,Minzu University of China,true,true,985
+ecnu,华东师范大学,East China Normal University,true,true,985
+nwpu,西北工业大学,Northwestern Polytechnical University,true,true,985
+ouc,中国海洋大学,Ocean University of China,true,true,985
+nwsuaf,西北农林科技大学,Northwest A&F University,true,true,985
+ruc,中国人民大学,Renmin University of China,true,true,985
+bupt,北京邮电大学,Beijing University of Posts and Telecommunications,false,true,211
+cufe,中央财经大学,Central University of Finance and Economics,false,true,211
+uibe,对外经济贸易大学,University of International Business and Economics,false,true,211
+cupl,中国政法大学,China University of Political Science and Law,false,true,211
+bfsu,北京外国语大学,Beijing Foreign Studies University,false,true,211
+shisu,上海外国语大学,Shanghai International Studies University,false,true,211
+sufe,上海财经大学,Shanghai University of Finance and Economics,false,true,211
+xidian,西安电子科技大学,Xidian University,false,true,211
+nuaa,南京航空航天大学,Nanjing University of Aeronautics and Astronautics,false,true,211
+njust,南京理工大学,Nanjing University of Science and Technology,false,true,211
+suda,苏州大学,Soochow University,false,true,211
+jnu,暨南大学,Jinan University,false,true,211
+ccnu,华中师范大学,Central China Normal University,false,true,211
+snnu,陕西师范大学,Shaanxi Normal University,false,true,211
+nenu,东北师范大学,Northeast Normal University,false,true,211
+ecust,华东理工大学,East China University of Science and Technology,false,true,211
+dhu,东华大学,Donghua University,false,true,211
+hhu,河海大学,Hohai University,false,true,211
+jiangnan,江南大学,Jiangnan University,false,true,211
+njau,南京农业大学,Nanjing Agricultural University,false,true,211
+cpu,中国药科大学,China Pharmaceutical University,false,true,211
+hfut,合肥工业大学,Hefei University of Technology,false,true,211
+fzu,福州大学,Fuzhou University,false,true,211
+ncu,南昌大学,Nanchang University,false,true,211
+zzu,郑州大学,Zhengzhou University,false,true,211
+ynu,云南大学,Yunnan University,false,true,211
+gzu,贵州大学,Guizhou University,false,true,211
+xju,新疆大学,Xinjiang University,false,true,211
+imnu,内蒙古大学,Inner Mongolia University,false,true,211
+gxu,广西大学,Guangxi University,false,true,211
+hainu,海南大学,Hainan University,false,true,211
+nxu,宁夏大学,Ningxia University,false,true,211
+qhu,青海大学,Qinghai University,false,true,211
+shzu,石河子大学,Shihezi University,false,true,211
+tbu,西藏大学,Tibet University,false,true,211
+ybu,延边大学,Yanbian University,false,true,211
+lnu,辽宁大学,Liaoning University,false,true,211
+tyut,太原理工大学,Taiyuan University of Technology,false,true,211
+hebut,河北工业大学,Hebei University of Technology,false,true,211
+tmu,天津医科大学,Tianjin Medical University,false,true,211
+szu,深圳大学,Shenzhen University,false,false,双非
+jiangsu_univ,江苏大学,Jiangsu University,false,false,双非
+yzu,扬州大学,Yangzhou University,false,false,双非
+zjut,浙江工业大学,Zhejiang University of Technology,false,false,双非
+hdu,杭州电子科技大学,Hangzhou Dianzi University,false,false,双非
+njtech,南京工业大学,Nanjing Tech University,false,false,双非
+ysu,燕山大学,Yanshan University,false,false,双非
+sdust,山东科技大学,Shandong University of Science and Technology,false,false,双非
+qdu,青岛大学,Qingdao University,false,false,双非
+nbu,宁波大学,Ningbo University,false,false,双非
+wzu,温州大学,Wenzhou University,false,false,双非
+gdut,广东工业大学,Guangdong University of Technology,false,false,双非
+stu,汕头大学,Shantou University,false,false,双非
+xjtlu,西交利物浦大学,Xian Jiaotong-Liverpool University,false,false,双非
+unnottm,宁波诺丁汉大学,University of Nottingham Ningbo China,false,false,双非
+cnu,首都师范大学,Capital Normal University,false,false,双非
+btbu,北京工商大学,Beijing Technology and Business University,false,false,双非
+usst,上海理工大学,University of Shanghai for Science and Technology,false,false,双非
+shnu,上海师范大学,Shanghai Normal University,false,false,双非
+ecupl,华东政法大学,East China University of Political Science and Law,false,false,双非
+njupt,南京邮电大学,Nanjing University of Posts and Telecommunications,false,false,双非
+nuist,南京信息工程大学,Nanjing University of Information Science and Technology,false,false,双非
+zjtu,浙江理工大学,Zhejiang Sci-Tech University,false,false,双非
+fjnu,福建师范大学,Fujian Normal University,false,false,双非
+hunnu,湖南师范大学,Hunan Normal University,false,false,双非
+gzhu,广州大学,Guangzhou University,false,false,双非
+swu,西南大学,Southwest University,false,false,双非
+cqnu,重庆师范大学,Chongqing Normal University,false,false,双非
+scuec,中南民族大学,South-Central Minzu University,false,false,双非
+whut,武汉理工大学,Wuhan University of Technology,false,false,双非
+wust,武汉科技大学,Wuhan University of Science and Technology,false,false,双非
+nchu,南昌航空大学,Nanchang Hangkong University,false,false,双非
+cqut,重庆理工大学,Chongqing University of Technology,false,false,双非

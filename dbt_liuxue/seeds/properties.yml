@@ -11,3 +11,16 @@ seeds:
           - accepted_values:
               arguments:
                 values: ['对口', '可转', '不可转']
+  - name: dim_cn_university
+    columns:
+      - name: cn_uni_id
+        tests: [unique, not_null]
+      - name: tier_label
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['985', '211', '双非', '海本', '其他']
+  - name: cn_university_alias
+    columns:
+      - name: alias
+        tests: [unique, not_null]
