@@ -106,6 +106,17 @@ def resolve_cn_university(name: str) -> dict | None:
     return None
 
 
+LIST_GATED_SCHOOLS = {"ucl", "bristol", "edinburgh"}  # 有官方in/out名单的校(sheffield全量分档不卡名单)
+
+
+def query_list_membership(cn_uni_id: str) -> set[str]:
+    """该本科校出现在哪些英国校的官方名单里"""
+    rows = fetch_all(
+        "SELECT DISTINCT uk_uni_id FROM stg_uk_official_lists WHERE cn_uni_id = %s",
+        (cn_uni_id,))
+    return {r["uk_uni_id"] for r in rows}
+
+
 def query_match_rows(cn_tier: str, subject_group: str) -> list[dict]:
     return fetch_all("""
         SELECT * FROM mart_uk_school_match_v1
@@ -180,8 +191,19 @@ def position(body: PositionIn):
         raise HTTPException(422, detail={"msg": "未识别本科院校，请确认校名",
                                          "hint": "尝试输入全称，如'江苏大学'"})
     rows = query_match_rows(uni["tier_label"], body.tgt_subject_group)
+    membership = query_list_membership(uni["cn_uni_id"])
     schools = []
+    not_on_list = []
     for row in rows:
+        # 有官方in/out名单的校：不在名单内则移入not_on_list，不参与冲/匹/保/不建议
+        if row["uk_uni_id"] in LIST_GATED_SCHOOLS and row["uk_uni_id"] not in membership:
+            not_on_list.append({
+                "uk_uni_id": row["uk_uni_id"],
+                "name_zh": row["name_zh"],
+                "note": "你的本科院校不在该校官方认可名单,通常不予考虑",
+                "source_url": row["source_url"],
+            })
+            continue
         gap = round(body.avg_score - float(row["min_avg_score"]), 1)
         tier = bucket_of(gap)
         ielts_flag = None
@@ -236,6 +258,7 @@ def position(body: PositionIn):
     return {
         "cn_university": uni,
         "schools": schools,
+        "not_on_list": not_on_list,
         "major_fit": major_fit,
         "waitlist_hint": "曼大/KCL等校精确线即将上线，可在 /waitlist 留邮箱",
     }

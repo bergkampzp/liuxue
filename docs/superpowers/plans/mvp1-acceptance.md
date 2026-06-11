@@ -293,3 +293,56 @@ Done. PASS=13 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=13
 | **综合判定** | **有条件通过** |
 
 **有条件通过条件**: KCL/Warwick 种子值精度修正（遗留事项 #6/#7）列入 MVP-2 首批任务，不阻塞 MVP-1 发布（因 confidence=low + aggregator 话术已对用户充分披露数据不确定性）。
+
+---
+
+## 终审修复后复验（commit a2f2fee + C4/I1/I2 修复）
+
+**复验日期**: 2026-06-11  
+**修复内容**: C1-C3（commit a2f2fee：种子16行定版、校名归一改精确匹配、sheffield 985=70）+ C4/I1/I2
+
+### C1-C3 种子定版说明
+
+- 种子文件 `testdaily_lines_seed.csv` 定版 **16 行**（删除 imperial 双非不存在行，保留可核实行）
+- 校名归一化改精确匹配（`name_zh`/`name_en`/别名三路 UNION，模糊 ≥85 分后备）
+- Sheffield 985 线修正：85 → **70**（tier1=70%，tier2=75%，tier3=80%，tier4=85%，see-additional 独立处理）
+
+### C4: 名单成员资格过滤
+
+修法：新增 `query_list_membership()` + `/position` 循环里对 `LIST_GATED_SCHOOLS`（ucl/bristol/edinburgh）的名单外院校移入 `not_on_list` 字段，不进冲/匹/保/不建议。  
+TDD：先加失败测试 `test_list_gated_school_excluded`，再补实现，`test_position_buckets` 同步 patch。
+
+### I1: 雅思基线改最高档
+
+`mart_uk_school_match_v1.sql` `baseline_ielts` CTE 的 `ORDER BY ielts_overall` 从 `ASC`（最低档）改为 `DESC`（最高档），与"宁严勿松"全链保守方向一致。  
+dbt run + dbt test 结果：`PASS=1` / `PASS=14`，全绿。
+
+### I2: waitlist 按钮修复
+
+`app_uk_select.py` 结果存 `st.session_state["position_result"]`，展示块改读 session_state；waitlist 改独立 `st.form("waitlist_form")` + `st.form_submit_button`，不再嵌套在 `if submitted:` 内。  
+语法验证：`python3 -c "import ast; ast.parse(...)"` 通过。
+
+### 北极星复验结果（江苏大学双非，均分82，软件工程，雅思6.5）
+
+```
+schools: 5  {'冲': 1, '匹': 1, '保': 0, '不建议': 3}
+not_on_list: ['ucl', 'edinburgh']
+
+各校明细:
+oxford    冲    85.0  gap=-3.0
+cambridge 不建议 90.0  gap=-8.0
+lse       不建议 90.0  gap=-8.0
+warwick   不建议 88.0  gap=-6.0
+sheffield 匹    75.0  gap=+7.0   ← C1修正后(原85→70)，82分学生终于有匹档
+```
+
+**预期变化均已实现**:
+- sheffield 双非线修正后（85→70），82分学生 gap=+7 → 匹（终于有匹档保底）
+- ucl / edinburgh 进入 `not_on_list`（江苏大学不在名单内，不参与档位判断）
+
+### 全量回归
+
+```
+pytest crawlers/tests api/tests -q: 72 passed (71旧 + 1新 test_list_gated_school_excluded)
+dbt test --select models/uk: PASS=14 WARN=0 ERROR=0
+```

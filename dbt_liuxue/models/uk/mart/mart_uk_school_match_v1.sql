@@ -3,7 +3,7 @@
 -- tier 级聚合规则：
 --   同 (uk_uni_id, subject_group, cn_tier) 取 MAX(min_avg_score)，保守上限（宁严勿松）
 --   官方行存在则 source_type='official_web' / confidence='high'
---   每校雅思取 ielts_overall 最低档作为入学基线
+--   每校雅思取 ielts_overall 最高档作为保守基线（宁严勿松）
 
 WITH tier_lines AS (
     SELECT
@@ -32,7 +32,7 @@ baseline_ielts AS (
         ielts_s,
         source_url AS ielts_source_url
     FROM {{ ref('stg_uk_ielts_requirements') }}
-    ORDER BY uk_uni_id, ielts_overall ASC                             -- 每校最低档 = 入学基线
+    ORDER BY uk_uni_id, ielts_overall DESC                            -- 取该校最高雅思档作保守基线
 )
 SELECT
     t.uk_uni_id,

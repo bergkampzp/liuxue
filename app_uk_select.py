@@ -26,29 +26,44 @@ if submitted:
     if r.status_code == 422:
         detail = r.json().get("detail", {})
         st.error(detail.get("msg", "输入有误") if isinstance(detail, dict) else str(detail))
+        st.session_state["position_result"] = None
     else:
-        data = r.json()
-        st.caption(f"识别院校：{data['cn_university']['name_zh']}"
-                   f"（{data['cn_university']['tier_label']}）")
-        if data.get("major_fit"):
-            mf = data["major_fit"]
-            st.info(f"专业判定：{mf['src_major_category']} → {mf['fit_level']}"
-                    + (f"（需先修：{mf['required_prereqs']}）" if mf.get("required_prereqs") else ""))
-        for bucket, emoji in [("冲", "🚀"), ("匹", "🎯"), ("保", "🛡️"), ("不建议", "⛔")]:
-            rows = [s for s in data["schools"] if s["tier"] == bucket]
-            if not rows:
-                continue
-            st.subheader(f"{emoji} {bucket} ({len(rows)})")
-            for s in rows:
-                with st.container(border=True):
-                    st.markdown(f"**{s['name_zh']}** (QS {s['qs_rank']})　"
-                                f"{BADGE.get(s['source_type'], s['source_type'])}")
-                    st.write(s["explanation"])
-                    st.markdown(f"[数据出处]({s['source_url']})")
-        st.divider()
-        st.info(data.get("waitlist_hint", ""))
+        st.session_state["position_result"] = r.json()
+
+# 结果展示块读 session_state，不依赖 submitted，避免 rerun 后丢失
+data = st.session_state.get("position_result")
+if data:
+    st.caption(f"识别院校：{data['cn_university']['name_zh']}"
+               f"（{data['cn_university']['tier_label']}）")
+    if data.get("major_fit"):
+        mf = data["major_fit"]
+        st.info(f"专业判定：{mf['src_major_category']} → {mf['fit_level']}"
+                + (f"（需先修：{mf['required_prereqs']}）" if mf.get("required_prereqs") else ""))
+    for bucket, emoji in [("冲", "🚀"), ("匹", "🎯"), ("保", "🛡️"), ("不建议", "⛔")]:
+        rows = [s for s in data["schools"] if s["tier"] == bucket]
+        if not rows:
+            continue
+        st.subheader(f"{emoji} {bucket} ({len(rows)})")
+        for s in rows:
+            with st.container(border=True):
+                st.markdown(f"**{s['name_zh']}** (QS {s['qs_rank']})　"
+                            f"{BADGE.get(s['source_type'], s['source_type'])}")
+                st.write(s["explanation"])
+                st.markdown(f"[数据出处]({s['source_url']})")
+    if data.get("not_on_list"):
+        st.subheader("🚫 名单外（通常不受理）")
+        for s in data["not_on_list"]:
+            with st.container(border=True):
+                st.markdown(f"**{s['name_zh']}**　{s['note']}")
+                st.markdown(f"[来源]({s['source_url']})")
+    st.divider()
+    st.info(data.get("waitlist_hint", ""))
+
+    # waitlist 改独立 form，不依赖外层 submitted，rerun 后可正常提交
+    with st.form("waitlist_form"):
         email = st.text_input("留下邮箱，缺失学校上线第一时间通知你")
-        if st.button("登记") and email:
-            requests.post(f"{API}/waitlist", json={"email": email}, timeout=10)
-            st.success("已登记！")
-        st.caption("免责声明：录取结果由学校最终决定，本平台数据用于规划参考。")
+        send = st.form_submit_button("登记")
+    if send and email:
+        requests.post(f"{API}/waitlist", json={"email": email}, timeout=10)
+        st.success("已登记！")
+    st.caption("免责声明：录取结果由学校最终决定，本平台数据用于规划参考。")

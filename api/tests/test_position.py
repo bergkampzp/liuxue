@@ -25,6 +25,7 @@ FAKE_TIER = {"cn_uni_id": "jiangsu_univ", "tier_label": "双非", "name_zh": "�
 def test_position_buckets(monkeypatch):
     monkeypatch.setattr(main, "query_match_rows", lambda tier, group: FAKE_ROWS)
     monkeypatch.setattr(main, "resolve_cn_university", lambda name: FAKE_TIER)
+    monkeypatch.setattr(main, "query_list_membership", lambda cid: {"ucl"})  # 在名单内,保持原断言
     resp = client.post("/position", json={
         "undergrad_school": "江苏大学", "avg_score": 84.0,
         "undergrad_major": "软件工程", "tgt_subject_group": "通用",
@@ -47,3 +48,18 @@ def test_unknown_school_422(monkeypatch):
         "undergrad_major": "魔法", "tgt_subject_group": "通用",
         "ielts_overall": 6.5})
     assert resp.status_code == 422
+
+
+def test_list_gated_school_excluded(monkeypatch):
+    """江苏大学不在 UCL 84校名单内 → ucl 不进冲/匹/保, 进 not_on_list"""
+    monkeypatch.setattr(main, "query_match_rows", lambda t, g: FAKE_ROWS)
+    monkeypatch.setattr(main, "resolve_cn_university", lambda n: FAKE_TIER)
+    monkeypatch.setattr(main, "query_list_membership", lambda cid: set())  # 不在任何名单
+    resp = client.post("/position", json={
+        "undergrad_school": "江苏大学", "avg_score": 84.0,
+        "undergrad_major": "软件工程", "tgt_subject_group": "通用",
+        "ielts_overall": 6.5})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "ucl" not in {r["uk_uni_id"] for r in body["schools"]}
+    assert any(r["uk_uni_id"] == "ucl" for r in body["not_on_list"])
