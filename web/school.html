@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>院校查询 — 选校罗盘</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- 1. 导航 -->
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <span class="nav-logo"></span>
+    选校罗盘
+  </a>
+  <div class="nav-links">
+    <a href="/school.html" class="active">院校查询</a>
+    <a href="/methodology.html">我们的数据</a>
+    <a href="/#locate" class="nav-cta">开始定位</a>
+  </div>
+</nav>
+
+<!-- 2. 缩小 Hero -->
+<div class="container" style="padding-top:36px;padding-bottom:28px">
+  <div class="hero-title hero-title-sm">
+    你的学校，在每所英国大学什么待遇
+  </div>
+  <div class="hero-sub">
+    输入一所中国大学，看它在 3,453 条官方名单里的全部记录
+  </div>
+</div>
+
+<!-- 3. 输入条 -->
+<div class="container" style="padding-bottom:32px">
+  <form id="ladder-form" novalidate>
+    <div class="input-group">
+      <input class="field" name="school" type="text" style="flex:1"
+             placeholder="中国大学全称，如：江苏大学" autocomplete="off">
+      <button type="submit" class="btn-cta">查全景 →</button>
+    </div>
+  </form>
+</div>
+
+<!-- 4. 结果区 -->
+<div class="container" id="ladder-result" style="padding-bottom:48px">
+  <div class="results-label">输入学校名开始查询 — 数据覆盖 30 所英国大学</div>
+</div>
+
+<!-- 5. 页脚 + Toast -->
+<div class="footer">
+  录取结果由学校最终决定，本平台数据用于规划参考，不构成录取承诺 · 数据更新于 2026-06
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

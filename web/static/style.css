@@ -400,6 +400,13 @@ a {
   line-height: 1.7;
 }
 
+.hero-title-sm {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
 /* ── 15. 结果标签 ────────────────────────────────────────── */
 .results-label {
   font-size: var(--fs-micro);

@@ -312,13 +312,107 @@ ${rowsHtml}`;
   resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// ── W-T5 stub：renderLadder ───────────────────────────────────
+// ── W-T5: renderLadder ───────────────────────────────────────
 /**
- * TODO (W-T5): 渲染 /school-ladder 全景表到 #ladder-result。
- * school.html 中的 #ladder-form submit 会调用此函数。
+ * 渲染 /school-ladder 全景表到 #ladder-result。
+ * @param {object} data - API 响应 { cn_university, schools, disclaimer }
  */
-export function renderLadder(_data) {
-  // W-T5 实现
+function renderLadder(data) {
+  const el = document.getElementById("ladder-result");
+  if (!el) return;
+
+  const { cn_university = {}, schools = [] } = data;
+
+  // 空数组兜底
+  if (!schools.length) {
+    el.innerHTML = `<div class="results-label">该校已识别，但暂无可展示的名单记录</div>`;
+    return;
+  }
+
+  // 顶部标签
+  const labelHtml = `<div class="results-label">${esc(cn_university.name_zh || "")}（${esc(cn_university.tier_label || "")}）— 在 30 所英国大学的待遇全景</div>`;
+
+  // 表头
+  const headHtml = `
+<div class="ladder-head">
+  <span>英国大学</span>
+  <span>QS 排名</span>
+  <span>名单状态</span>
+  <span>分数线</span>
+  <span>雅思</span>
+  <span>出处</span>
+</div>`;
+
+  // 行
+  let rowsHtml = "";
+  for (const s of schools) {
+    // 徽章逻辑
+    let badgeCls, badgeLabel;
+    const ls = s.list_status || "";
+    if (ls.startsWith("名单内")) {
+      badgeCls   = "badge-official";
+      badgeLabel = esc(ls);
+    } else if (ls === "有分数线") {
+      const src = s.source_type || "";
+      if (src.startsWith("official")) {
+        badgeCls   = "badge-official";
+        badgeLabel = "官方公布";
+      } else {
+        badgeCls   = "badge-ref";
+        badgeLabel = "参考线·待核";
+      }
+    } else if (ls === "不在认可名单") {
+      badgeCls   = "badge-notlist";
+      badgeLabel = "不在认可名单";
+    } else if (ls === "未收录") {
+      badgeCls   = "badge-pending";
+      badgeLabel = "案例积累中";
+    } else if (ls === "个案审核") {
+      badgeCls   = "badge-pending";
+      badgeLabel = "个案审核";
+    } else {
+      badgeCls   = "badge-pending";
+      badgeLabel = esc(ls);
+    }
+
+    // dim 行
+    const isDim = ls === "不在认可名单" || ls === "未收录";
+
+    // QS
+    const qsHtml = s.qs_rank != null ? `#${esc(String(s.qs_rank))}` : "—";
+
+    // 分数线
+    let scoreHtml = "—";
+    if (s.min_avg_score != null) {
+      const src = s.source_type || "";
+      const suffix = src.startsWith("official") ? "" : "（参考）";
+      scoreHtml = `${esc(String(s.min_avg_score))}${suffix}`;
+      // 谢菲且 band_min_score 非空 → 追加小字
+      if (s.uk_uni_id === "sheffield" && s.band_min_score != null) {
+        scoreHtml += `<br><span style="font-size:10px;color:var(--muted)">逐校档线 ${esc(String(s.band_min_score))}</span>`;
+      }
+    }
+
+    // 雅思
+    const ieltsHtml = s.ielts_overall != null ? esc(String(s.ielts_overall)) : "—";
+
+    // 出处
+    const srcHtml = s.source_url
+      ? `<a href="${esc(s.source_url)}" target="_blank" rel="noopener">出处 ↗</a>`
+      : "—";
+
+    rowsHtml += `
+<div class="ladder-row${isDim ? " is-dim" : ""}">
+  <span class="lr-name">${esc(s.name_zh)}</span>
+  <span class="lr-qs" data-label="QS 排名">${qsHtml}</span>
+  <span class="lr-status" data-label="名单状态"><span class="badge ${badgeCls}">${badgeLabel}</span></span>
+  <span class="lr-score" data-label="你这档分数线">${scoreHtml}</span>
+  <span class="lr-ielts" data-label="雅思基线">${ieltsHtml}</span>
+  <span class="lr-src" data-label="出处">${srcHtml}</span>
+</div>`;
+  }
+
+  el.innerHTML = labelHtml + headHtml + rowsHtml;
 }
 
 // ── 入口：绑定表单 ────────────────────────────────────────────
@@ -356,6 +450,30 @@ const ladderForm = document.getElementById("ladder-form");
 if (ladderForm) {
   ladderForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // TODO (W-T5): 实现 renderLadder 调用
+    const schoolEl = ladderForm.elements["school"];
+    const v = (schoolEl.value || "").trim();
+    if (v.length < 2) {
+      schoolEl.classList.add("invalid");
+      toast("请输入完整的学校名称（至少 2 个字符）");
+      return;
+    }
+    schoolEl.classList.remove("invalid");
+
+    const btn = ladderForm.querySelector(".btn-cta");
+    if (btn) btn.disabled = true;
+
+    try {
+      const data = await api("/school-ladder?school=" + encodeURIComponent(v));
+      renderLadder(data);
+    } catch (err) {
+      if (err && err.kind === "unrecognized") {
+        const hint = err.hint ? `\n${err.hint}` : "";
+        toast(`${err.msg}${hint}`);
+      } else {
+        toast("服务暂时不可用，请稍后再试");
+      }
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 }
