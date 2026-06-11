@@ -122,6 +122,26 @@ run_uk() {
     log "英联邦支线完成"
 }
 
+# ── case: 反推线支线 ────────────────────────────────────────────────────
+run_case() {
+    ensure_db
+    resolve_dbt
+    ensure_dbt_profile
+    log "反推线管线: migration → gter增量 → 归一 → dbt case → 拟合 → 测试"
+    psql "$DB_DSN" -f "$SCRIPT_DIR/migrations/003_case_pipeline.sql"
+    cd "$SCRIPT_DIR/crawlers" && python3 sync_gter.py --max-pages 50 || log "gter 增量失败(非致命,继续)"
+    cd "$SCRIPT_DIR" && python3 scripts/normalize_cases.py
+    cd "$SCRIPT_DIR/dbt_liuxue"
+    "$DBT_BIN" run --select stg_uk_cases int_uk_cases_tagged
+    cd "$SCRIPT_DIR" && python3 scripts/fit_uk_entry_line.py
+    cd "$SCRIPT_DIR/dbt_liuxue"
+    "$DBT_BIN" run --select stg_uk_entry_line_case
+    "$DBT_BIN" test --select stg_uk_cases int_uk_cases_tagged stg_uk_entry_line_case
+    log "产量统计:"
+    psql "$DB_DSN" -c "SELECT 'cases(stg)' k, count(*) FROM stg_uk_cases UNION ALL SELECT 'tagged(int)', count(*) FROM int_uk_cases_tagged UNION ALL SELECT '归一映射', count(*) FROM raw.case_school_map UNION ALL SELECT '出线格', count(*) FROM raw.uk_entry_line_case"
+    log "反推线管线完成（注意: case线未过H7顾问复核不得接入web）"
+}
+
 # ── dashboard ───────────────────────────────────────────────────────────
 dashboard() {
     ensure_db
@@ -214,6 +234,9 @@ case "${1:-}" in
     uk)
         run_uk
         ;;
+    case)
+        run_case
+        ;;
     dashboard)
         dashboard
         ;;
@@ -224,12 +247,13 @@ case "${1:-}" in
         all
         ;;
     *)
-        echo "用法: $0 {crawl|dbt|uk|dashboard|status|all}"
+        echo "用法: $0 {crawl|dbt|uk|case|dashboard|status|all}"
         echo ""
         echo "  crawl [--majors 'CS,DS' --max-pages 5 --dry-run]"
         echo "      爬取 GradCafe 录取数据"
         echo "  dbt     运行 dbt 模型 (staging→intermediate→features→mart→dashboard)"
         echo "  uk      英联邦支线: migration+seed+uk模型+测试"
+        echo "  case    反推线支线: migration+gter增量+校名归一+dbt case+拟合+测试"
         echo "  dashboard  BI 看板统计 + Metabase 提示"
         echo "  status   查看数据统计"
         echo "  all      一键执行完整管线"
