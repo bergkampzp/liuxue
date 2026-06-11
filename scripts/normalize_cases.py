@@ -73,16 +73,35 @@ def match_school(
             return row["cn_uni_id"], "alias", 1.0
 
     # 3. rapidfuzz partial_ratio >= 92（高闸）
-    best_score = 0.0
-    best_id: Optional[str] = None
-    for row in dim_rows:
-        for candidate in (row["name_zh"], row["name_en"]):
-            if not candidate:
-                continue
-            score = fuzz.partial_ratio(name_stripped, candidate)
-            if score > best_score:
-                best_score = score
-                best_id = row["cn_uni_id"]
+    # 守卫：独立学院（含"学院"）不得 fuzzy 配到母体（无"学院"）
+    # 原因：金陵学院事故 — partial_ratio('东南大学成贤学院','东南大学')=100
+    #      但独立学院与母体是不同档位（三本 vs 985/211），误配污染 tier → 污染反推线
+    # 例外：精确级/别名级不受影响（独立学院若应归一，正道是在维表/别名表中定义）
+    if '学院' in name_stripped:
+        # 名称含"学院" → 只接受候选也含"学院"的模糊匹配
+        best_score = 0.0
+        best_id: Optional[str] = None
+        for row in dim_rows:
+            for candidate in (row["name_zh"], row["name_en"]):
+                if not candidate or '学院' not in candidate:
+                    # 候选无"学院" → 跳过（防误配）
+                    continue
+                score = fuzz.partial_ratio(name_stripped, candidate)
+                if score > best_score:
+                    best_score = score
+                    best_id = row["cn_uni_id"]
+    else:
+        # 正常校名（无"学院"）→ 不受守卫影响
+        best_score = 0.0
+        best_id: Optional[str] = None
+        for row in dim_rows:
+            for candidate in (row["name_zh"], row["name_en"]):
+                if not candidate:
+                    continue
+                score = fuzz.partial_ratio(name_stripped, candidate)
+                if score > best_score:
+                    best_score = score
+                    best_id = row["cn_uni_id"]
 
     if best_score >= FUZZY_THRESHOLD:
         return best_id, "fuzzy", 0.92
