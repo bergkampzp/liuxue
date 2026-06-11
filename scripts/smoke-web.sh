@@ -288,7 +288,6 @@ WAITLIST_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${BASE}/waitlist
     -d '{"email":"test@example.com"}')
 if [ "$WAITLIST_CODE" = "200" ] || [ "$WAITLIST_CODE" = "201" ]; then
     ok "HTTP 200/201: /waitlist POST"
-    PASS=$((PASS+1))
 else
     fail "HTTP 200 expected, got $WAITLIST_CODE: /waitlist POST"
 fi

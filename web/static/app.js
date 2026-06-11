@@ -40,6 +40,15 @@ function esc(s) {
   return d.innerHTML;
 }
 
+/**
+ * 仅允许 http/https URL 透出到 href 属性，防止 javascript: 等属性逃逸。
+ * 通过则返回 URL（双引号替换为 %22），否则返回 null。
+ */
+function safeUrl(u) {
+  if (!u || !/^https?:\/\//i.test(u)) return null;
+  return u.replace(/"/g, "%22");
+}
+
 // ── API 封装 ─────────────────────────────────────────────────
 /**
  * 通用 fetch，10 秒超时。
@@ -251,8 +260,9 @@ function renderPosition(data, query) {
     for (const s of buckets[tier]) {
       const badge    = BADGE_BY_SOURCE[s.source_type] || { cls: "badge-pending", label: "案例积累中" };
       const emoji    = TIER_EMOJI[s.tier] || "📌";
-      const sourceHtml = s.source_url
-        ? `<a class="row-source" href="${esc(s.source_url)}" target="_blank" rel="noopener">来源 ↗</a>`
+      const _srcUrl0 = safeUrl(s.source_url);
+      const sourceHtml = _srcUrl0
+        ? `<a class="row-source" href="${_srcUrl0}" target="_blank" rel="noopener">来源 ↗</a>`
         : "";
       rowsHtml += `
 <div class="result-row${isDim ? " is-dim" : ""}">
@@ -268,8 +278,9 @@ function renderPosition(data, query) {
 
   // not_on_list：⛔ 红行 is-dim
   for (const s of not_on_list) {
-    const sourceHtml = s.source_url
-      ? `<a class="row-source" href="${esc(s.source_url)}" target="_blank" rel="noopener">名单 ↗</a>`
+    const _srcUrl1 = safeUrl(s.source_url);
+    const sourceHtml = _srcUrl1
+      ? `<a class="row-source" href="${_srcUrl1}" target="_blank" rel="noopener">名单 ↗</a>`
       : "";
     rowsHtml += `
 <div class="result-row is-dim">
@@ -385,7 +396,7 @@ function renderLadder(data) {
     let scoreHtml = "—";
     if (s.min_avg_score != null) {
       const src = s.source_type || "";
-      const suffix = src.startsWith("official") ? "" : "（参考）";
+      const suffix = src.startsWith("official") ? "" : "（参考，建议核对官网）";
       scoreHtml = `${esc(String(s.min_avg_score))}${suffix}`;
       // 谢菲且 band_min_score 非空 → 追加小字
       if (s.uk_uni_id === "sheffield" && s.band_min_score != null) {
@@ -397,8 +408,9 @@ function renderLadder(data) {
     const ieltsHtml = s.ielts_overall != null ? esc(String(s.ielts_overall)) : "—";
 
     // 出处
-    const srcHtml = s.source_url
-      ? `<a href="${esc(s.source_url)}" target="_blank" rel="noopener">出处 ↗</a>`
+    const _srcUrl2 = safeUrl(s.source_url);
+    const srcHtml = _srcUrl2
+      ? `<a href="${_srcUrl2}" target="_blank" rel="noopener">出处 ↗</a>`
       : "—";
 
     rowsHtml += `

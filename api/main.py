@@ -128,7 +128,7 @@ SOURCE_LABEL = {
     "official_web": "官方公布门槛",
     "official_pdf": "官方公布门槛",
     "aggregator": "第三方整理参考线，建议核对官网",
-    "case_inferred": "历史案例估计参考线",
+    "case_inferred": "历史案例估计参考线，建议核对官网",
 }
 
 
@@ -313,7 +313,11 @@ def synth_row(dim_row: dict, stg_hits: dict, mart_hits: dict) -> dict:
                 list_status = f"名单内({band})" if band else "有分数线"
                 band_min_score = float(stg["min_avg_score"]) if stg.get("min_avg_score") is not None else None
         else:
-            list_status = "未收录"
+            # 无 stg 行 → 回落通用规则：mart 命中 → 有分数线；否则 → 真"未收录"
+            if mart:
+                list_status = "有分数线"
+            else:
+                list_status = "未收录"
             band_min_score = None
     elif uid in LIST_GATED_SCHOOLS:
         if stg:

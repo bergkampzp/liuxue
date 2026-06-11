@@ -251,3 +251,36 @@ def test_ladder_gated_set_unchanged():
     """LIST_GATED_SCHOOLS must equal {'ucl', 'bristol', 'edinburgh'}"""
     assert LIST_GATED_SCHOOLS == {"ucl", "bristol", "edinburgh"}, \
         f"unexpected gated set: {LIST_GATED_SCHOOLS}"
+
+
+# ---------------------------------------------------------------------------
+# Test 7 (I-1): sheffield 不在 stg 名单时应回落通用规则而非硬写"未收录"
+# ---------------------------------------------------------------------------
+
+def test_ladder_sheffield_not_in_list_falls_back(monkeypatch):
+    """
+    西交大类: sheffield 不在 stg 名单但 mart 有 tier 线 (75/official) →
+    list_status 必须是 "有分数线"，min_avg_score=75.0，band_min_score=None。
+    不能出现 "未收录" 且仍透传 mart 线的矛盾状态。
+    """
+    # stg 不含 sheffield 行（只含 bristol）
+    list_rows_no_sheffield = [r for r in FAKE_LIST_ROWS if r["uk_uni_id"] != "sheffield"]
+
+    monkeypatch.setattr(main, "resolve_cn_university",    lambda name: FAKE_TIER)
+    monkeypatch.setattr(main, "query_uk_universities",    lambda: FAKE_UK_UNIS)
+    monkeypatch.setattr(main, "query_official_list_rows", lambda cid: list_rows_no_sheffield)
+    # FAKE_MART_ROWS 含 sheffield(75.0/official_web)
+    monkeypatch.setattr(main, "query_match_rows",         lambda tier, grp: FAKE_MART_ROWS)
+
+    resp = client.get("/school-ladder", params={"school": "江苏大学"})
+    assert resp.status_code == 200
+
+    rows = {r["uk_uni_id"]: r for r in resp.json()["schools"]}
+    sh = rows["sheffield"]
+
+    assert sh["list_status"] == "有分数线", \
+        f"sheffield 无 stg 行但 mart 有线，期望 '有分数线'，实际: {sh['list_status']}"
+    assert sh["min_avg_score"] == 75.0, \
+        f"min_avg_score 期望 75.0，实际: {sh['min_avg_score']}"
+    assert sh["band_min_score"] is None, \
+        f"band_min_score 应为 null，实际: {sh['band_min_score']}"

@@ -2,7 +2,7 @@
 
 **日期：** 2026-06-11  
 **验收人：** 独立 acceptance checker（对抗性核检，不信任实施报告）  
-**分支：** main  
+**分支：** worktree-web-luopan  
 **服务：** `bash serve.sh`（uvicorn api.main:app，PORT=8000）  
 **smoke-web.sh 最终结果：** PASS=39 FAIL=0 WARN=0 exit=0
 
