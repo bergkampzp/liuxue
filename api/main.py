@@ -409,3 +409,10 @@ class WaitlistIn(BaseModel):
 def waitlist(body: WaitlistIn):
     insert_waitlist(body.email, body.uk_uni_id, body.profile)
     return {"ok": True, "msg": "已登记，上线后第一时间通知你"}
+
+
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
