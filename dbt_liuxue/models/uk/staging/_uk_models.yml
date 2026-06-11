@@ -72,3 +72,14 @@ models:
           - accepted_values:
               arguments:
                 values: ['CS与数据', '商科金融', '工科', '法律', '教育', '传媒', '通用']
+
+  - name: stg_uk_entry_line_case
+    description: |
+      等渗反推分界线暂存层（薄封装 raw.uk_entry_line_case）。
+      **未接入 mart/API——H7 顾问复核未签不得进 web**
+    columns:
+      - name: confidence
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['high', 'medium', 'low']
