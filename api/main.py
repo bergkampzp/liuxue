@@ -264,6 +264,136 @@ def position(body: PositionIn):
     }
 
 
+def query_uk_universities() -> list[dict]:
+    """全量 dim_uk_university，30 行（qs_rank 升序 null 殿后由端点排序）"""
+    return fetch_all("SELECT uk_uni_id, name_zh, qs_rank FROM dim_uk_university")
+
+
+def query_official_list_rows(cn_uni_id: str) -> list[dict]:
+    """本科校在 stg_uk_official_lists 中的所有命中行（≤4校）"""
+    return fetch_all(
+        "SELECT uk_uni_id, cn_uni_id, band, min_avg_score, source_url "
+        "FROM stg_uk_official_lists WHERE cn_uni_id = %s",
+        (cn_uni_id,))
+
+
+def suggest_cn_universities(name: str) -> list[str]:
+    """模糊匹配候选校名，fuzz≥60 取前 3"""
+    all_rows = fetch_all("SELECT name_zh FROM dim_cn_university")
+    names = [r["name_zh"] for r in all_rows]
+    results = process.extract(name, names, scorer=fuzz.ratio, limit=10)
+    return [r[0] for r in results if r[1] >= 60][:3]
+
+
+def synth_row(dim_row: dict, stg_hits: dict, mart_hits: dict) -> dict:
+    """
+    纯函数：不查库。
+    dim_row   : {uk_uni_id, name_zh, qs_rank}
+    stg_hits  : dict[uk_uni_id -> stg list row]
+    mart_hits : dict[uk_uni_id -> mart match row]
+    返回 9 字段行（契约字段）。
+    """
+    uid = dim_row["uk_uni_id"]
+    stg = stg_hits.get(uid)
+    mart = mart_hits.get(uid)
+
+    # ---- list_status & band_min_score ----
+    if uid == "sheffield":
+        if stg:
+            band = stg.get("band") or ""
+            arwu_bands = {"arwu-tier1", "arwu-tier2", "arwu-tier3", "arwu-tier4"}
+            special_bands = {"see-additional", "gpa-scale"}
+            if band in arwu_bands:
+                list_status = f"名单内({band})"
+                band_min_score = float(stg["min_avg_score"]) if stg.get("min_avg_score") is not None else None
+            elif band in special_bands:
+                list_status = "个案审核"
+                band_min_score = None
+            else:
+                list_status = f"名单内({band})" if band else "有分数线"
+                band_min_score = float(stg["min_avg_score"]) if stg.get("min_avg_score") is not None else None
+        else:
+            list_status = "未收录"
+            band_min_score = None
+    elif uid in LIST_GATED_SCHOOLS:
+        if stg:
+            band = stg.get("band") or ""
+            list_status = f"名单内({band})" if band else "名单内"
+            band_min_score = None
+        else:
+            list_status = "不在认可名单"
+            band_min_score = None
+    else:
+        # 其余校: mart 命中 → 有分数线; 否则 → 未收录
+        if mart:
+            list_status = "有分数线"
+        else:
+            list_status = "未收录"
+        band_min_score = None
+
+    # ---- min_avg_score: 一律取 mart tier 线 ----
+    min_avg_score = float(mart["min_avg_score"]) if mart and mart.get("min_avg_score") is not None else None
+
+    # ---- source_type / source_url: 名单出处优先(stg)，无则mart，无则null ----
+    # stg 表无 source_type 列，名单行一律视为 official_web
+    if stg:
+        source_type = stg.get("source_type") or "official_web"
+        source_url = stg.get("source_url") or (mart.get("source_url") if mart else None)
+    elif mart:
+        source_type = mart.get("source_type")
+        source_url = mart.get("source_url")
+    else:
+        source_type = None
+        source_url = None
+
+    ielts_overall = float(mart["ielts_overall"]) if mart and mart.get("ielts_overall") is not None else None
+
+    return {
+        "uk_uni_id":      uid,
+        "name_zh":        dim_row["name_zh"],
+        "qs_rank":        dim_row.get("qs_rank"),
+        "list_status":    list_status,
+        "band_min_score": band_min_score,
+        "min_avg_score":  min_avg_score,
+        "source_type":    source_type,
+        "source_url":     source_url,
+        "ielts_overall":  ielts_overall,
+    }
+
+
+@app.get("/school-ladder")
+def school_ladder(school: str):
+    uni = resolve_cn_university(school)
+    if uni is None:
+        candidates = suggest_cn_universities(school)
+        raise HTTPException(422, detail={
+            "msg": f"未识别本科院校'{school}'，请确认校名",
+            "hint": "尝试输入全称，如'江苏大学'",
+            "candidates": candidates,
+        })
+
+    # 固定 3 查询防 N+1
+    all_unis = query_uk_universities()
+    list_rows = query_official_list_rows(uni["cn_uni_id"])
+    mart_rows = query_match_rows(uni["tier_label"], "通用")
+
+    # 建索引
+    stg_hits = {r["uk_uni_id"]: r for r in list_rows}
+    mart_hits = {r["uk_uni_id"]: r for r in mart_rows}
+
+    # Python 合成
+    schools = [synth_row(d, stg_hits, mart_hits) for d in all_unis]
+
+    # qs_rank 升序 null 殿后
+    schools.sort(key=lambda x: (x["qs_rank"] is None, x["qs_rank"] or 9999))
+
+    return {
+        "cn_university": uni,
+        "schools": schools,
+        "disclaimer": "分数线为入学门槛参考，不构成录取承诺；名单与分数以校方当年官网为准",
+    }
+
+
 def insert_waitlist(email: str, uk_uni_id: str | None, profile: dict | None):
     execute("INSERT INTO raw.waitlist_leads (email, uk_uni_id, profile_json) VALUES (%s,%s,%s)",
             (email, uk_uni_id, json.dumps(profile or {}, ensure_ascii=False)))
