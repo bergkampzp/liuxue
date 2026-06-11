@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
 """
-sync_uk_official_lists.py — UCL & Bristol 官方中国院校名单爬虫
+sync_uk_official_lists.py — UCL & Bristol & Edinburgh 官方中国院校名单爬虫
 
 数据源（静态 HTML）:
   UCL     https://www.ucl.ac.uk/prospective-students/international/china
            → dl.accordion > dd.accordion__description > table（两列布局）
   Bristol https://www.bristol.ac.uk/international/countries/china/accepted-universities-in-china/
            → 单列 table，th="University name" + td 行（303 条）
+  Edinburgh https://www.ed.ac.uk/studying/international/postgraduate-entry/asia/china
+           → 页面含 PDF 链接，下载并解析文本型 PDF（pdfplumber）
 
 用法:
     python sync_uk_official_lists.py --source ucl
     python sync_uk_official_lists.py --source bristol
+    python sync_uk_official_lists.py --source edinburgh
     python sync_uk_official_lists.py --source ucl --dry-run
     python sync_uk_official_lists.py --source ucl --from-snapshot crawlers/snapshots/ucl_china.html
+    python sync_uk_official_lists.py --source edinburgh --from-snapshot crawlers/snapshots/edinburgh_priority_list.pdf
 """
 from __future__ import annotations
 
 import argparse
 import logging
 import os
+import re
 import sys
 from datetime import datetime, timezone
 from typing import Any
@@ -36,6 +41,11 @@ log = logging.getLogger("sync_uk_official_lists")
 # ---------------------------------------------------------------------------
 UCL_URL = "https://www.ucl.ac.uk/prospective-students/international/china"
 BRISTOL_URL = "https://www.bristol.ac.uk/international/countries/china/accepted-universities-in-china/"
+EDINBURGH_URL = "https://www.ed.ac.uk/studying/international/postgraduate-entry/asia/china"
+EDINBURGH_PDF_BASE = "https://www.ed.ac.uk"
+EDINBURGH_SNAPSHOT_PDF = os.path.join(
+    os.path.dirname(__file__), "snapshots", "edinburgh_priority_list.pdf"
+)
 
 DEFAULT_DSN = os.environ.get(
     "WAREHOUSE_DSN",
@@ -137,6 +147,179 @@ def parse_bristol(html: str) -> list[dict[str, Any]]:
     return records
 
 
+def parse_edinburgh_pdf(lines: list[str]) -> list[dict[str, Any]]:
+    """
+    解析 Edinburgh Priority List PDF 提取出的文本行列表。
+
+    PDF 结构（October 2024，9页）：
+      - 页面标题行：匹配 r'^Priority List of Chinese universities'
+      - 注释段落行（Note:/designated by/.../entry to ...）：跳过
+      - 主名单：从第一所院校起，到 "Appendix 1" 前（band='priority-list'）
+      - Appendix 1 — 法学院（band='law-school'）
+      - Appendix 2 — 艺术学院（band='art-college'）
+
+    多行校名（校名后跟括号注释跨行）：通过括号计数合并为单条记录。
+
+    接受 list[str]（已按行拆分的 PDF 文本），便于单元测试注入 fixture。
+    """
+    # ---- 跳过规则（非校名行） ----
+    SKIP_RE = re.compile(
+        r"^Priority List of Chinese universities"
+        r"|^Note:"
+        r"|^designated by"
+        r"|^Discipline\."
+        r"|^Discipline that is relevant"
+        r"|^Appendix \d+ provides"
+        r"|^entry to (Law|Art)"
+        r"|^relevant degrees\)"
+        r"|^College of (Medicine|Science)"
+        r"|^the College of"
+        r"|^\(For programmes"
+        r"|^and in the College"
+        r"|^in the College"
+        r"|^must be in"
+        r"|^be in a World Class"
+        r"|^degree must be in"
+        r"|^undergraduate degree must"
+        r"|^postgraduate programme\."
+        r"|^programme\."
+        r"|^World Class Discipline"
+        r"|^Class Discipline"
+        r"|^is relevant"
+        r"|^that is relevant"
+    )
+
+    # 三个段落的 band 标签
+    SECTION_MAIN = "priority-list"
+    SECTION_LAW = "law-school"
+    SECTION_ART = "art-college"
+
+    current_section = SECTION_MAIN
+    records: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    pending: list[str] = []   # 多行校名缓冲
+
+    def flush_pending() -> None:
+        """将 pending 缓冲合并为一条记录写入 records"""
+        if not pending:
+            return
+        name = " ".join(pending).strip()
+        pending.clear()
+        if not name:
+            return
+        key = (name, current_section)
+        if key in seen:
+            return
+        seen.add(key)
+        records.append(
+            {
+                "uk_uni_id": "edinburgh",
+                "cn_name_raw": name,
+                "band": current_section,
+                "min_avg_score": None,
+            }
+        )
+
+    # 括号深度计数：用于判断多行注释是否结束
+    open_parens = 0
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        # ---- 检测 Appendix 节标题 ----
+        if re.match(r"^Appendix 1\s*[–—-]", line):
+            flush_pending()
+            current_section = SECTION_LAW
+            continue
+        if re.match(r"^Appendix 2\s*[–—-]", line):
+            flush_pending()
+            current_section = SECTION_ART
+            continue
+
+        # ---- 跳过非校名行（在没有待积累校名时） ----
+        if open_parens == 0 and SKIP_RE.match(line):
+            continue
+
+        # ---- 追加到当前校名缓冲 ----
+        pending.append(line)
+        open_parens += line.count("(") - line.count(")")
+
+        # 括号已闭合（= 0）：可以 flush
+        if open_parens <= 0:
+            open_parens = 0
+            flush_pending()
+
+    flush_pending()
+    log.info("Edinburgh: 解析到 %d 条 (main/law/art)", len(records))
+    return records
+
+
+def fetch_edinburgh_pdf(snapshot_path: str | None = None) -> tuple[str, list[str]]:
+    """
+    获取爱丁堡 Priority List PDF 并提取文本行。
+
+    优先使用 snapshot_path；否则：
+      1. 从 EDINBURGH_URL 页面抓取 HTML，找到 PDF 链接
+      2. 下载 PDF 到 EDINBURGH_SNAPSHOT_PDF 归档
+      3. 用 pdfplumber 提取文本行
+
+    返回 (source_url, lines)
+    """
+    try:
+        import pdfplumber
+    except ImportError:
+        log.error("pdfplumber 未安装，请 pip install pdfplumber")
+        sys.exit(1)
+
+    if snapshot_path:
+        pdf_path = snapshot_path
+        source_url = pdf_path
+    else:
+        # Step 1: 抓取页面，找 PDF 链接
+        log.info("GET %s", EDINBURGH_URL)
+        resp = requests.get(EDINBURGH_URL, headers=HEADERS, timeout=30)
+        resp.raise_for_status()
+        html = resp.text
+
+        match = re.search(r'href="(/[^"]*priority[^"]*\.pdf)"', html, re.IGNORECASE)
+        if not match:
+            log.error("Edinburgh: 页面未找到 Priority List PDF 链接，请检查页面结构")
+            sys.exit(1)
+
+        pdf_rel = match.group(1)
+        pdf_url = EDINBURGH_PDF_BASE + pdf_rel
+        source_url = pdf_url
+
+        # Step 2: 下载 PDF
+        log.info("下载 PDF: %s", pdf_url)
+        pdf_resp = requests.get(pdf_url, headers=HEADERS, timeout=60)
+        pdf_resp.raise_for_status()
+
+        os.makedirs(os.path.dirname(EDINBURGH_SNAPSHOT_PDF), exist_ok=True)
+        with open(EDINBURGH_SNAPSHOT_PDF, "wb") as f:
+            f.write(pdf_resp.content)
+        log.info("PDF 已保存: %s (%d bytes)", EDINBURGH_SNAPSHOT_PDF, len(pdf_resp.content))
+
+        pdf_path = EDINBURGH_SNAPSHOT_PDF
+
+    # Step 3: 提取文本行
+    lines: list[str] = []
+    with pdfplumber.open(pdf_path) as pdf:
+        log.info("Edinburgh PDF: %d 页", len(pdf.pages))
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                for line in text.split("\n"):
+                    stripped = line.strip()
+                    if stripped:
+                        lines.append(stripped)
+
+    return source_url, lines
+
+
 # ---------------------------------------------------------------------------
 # 抓取 / 读快照
 # ---------------------------------------------------------------------------
@@ -183,10 +366,10 @@ def upsert_records(records: list[dict[str, Any]], source_url: str) -> int:
 # CLI
 # ---------------------------------------------------------------------------
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="UCL/Bristol 官方中国院校名单爬虫")
+    p = argparse.ArgumentParser(description="UCL/Bristol/Edinburgh 官方中国院校名单爬虫")
     p.add_argument(
         "--source",
-        choices=["ucl", "bristol"],
+        choices=["ucl", "bristol", "edinburgh"],
         required=True,
         help="数据源",
     )
@@ -194,7 +377,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--from-snapshot",
         metavar="PATH",
-        help="离线模式：直接读本地快照文件（跳过 HTTP 请求）",
+        help="离线模式：直接读本地快照文件（跳过 HTTP 请求）。"
+             "Edinburgh 传入 PDF 路径；UCL/Bristol 传入 HTML 路径。",
     )
     return p.parse_args()
 
@@ -202,7 +386,43 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    # 选择数据源
+    # ---- 爱丁堡：PDF 源，独立处理分支 ----
+    if args.source == "edinburgh":
+        source_url, lines = fetch_edinburgh_pdf(
+            snapshot_path=args.from_snapshot,
+        )
+        records = parse_edinburgh_pdf(lines)
+
+        if len(records) < MIN_RECORDS:
+            log.error(
+                "熔断！解析结果仅 %d 条（阈值 %d），PDF 可能改版，终止写入。",
+                len(records),
+                MIN_RECORDS,
+            )
+            sys.exit(1)
+
+        log.info("Edinburgh 解析完成，共 %d 条", len(records))
+
+        if args.dry_run:
+            log.info("[dry-run] 跳过写入，预览前 5 条：")
+            for r in records[:5]:
+                log.info("  %s | %s | %s", r["uk_uni_id"], r["band"], r["cn_name_raw"][:60])
+            return
+
+        written = upsert_records(records, source_url)
+        log.info("已写入 %d 条 → raw.uk_official_lists", written)
+
+        with psycopg2.connect(DEFAULT_DSN) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT COUNT(*) FROM raw.uk_official_lists WHERE uk_uni_id = %s",
+                    ("edinburgh",),
+                )
+                total = cur.fetchone()[0]
+        log.info("数据库 edinburgh 总计: %d 条", total)
+        return
+
+    # ---- UCL / Bristol：HTML 源 ----
     if args.source == "ucl":
         url = UCL_URL
         parser = parse_ucl
