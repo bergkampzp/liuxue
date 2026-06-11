@@ -1,0 +1,505 @@
+/* ============================================================
+   选校罗盘 — 设计令牌 + 组件 + 断点
+   B活力渐变 × read.cv 极简 | 唯一断点 640px
+   ============================================================ */
+
+/* ── 1. 设计令牌 ─────────────────────────────────────────── */
+:root {
+  /* 渐变 */
+  --grad-brand: linear-gradient(135deg, #7c3aed, #db2777, #f59e0b);
+  --grad-text:  linear-gradient(90deg, #7c3aed, #db2777, #f59e0b);
+  --grad-cta:   linear-gradient(90deg, #7c3aed, #db2777);
+  --grad-badge: linear-gradient(90deg, #2563eb, #7c3aed);
+  --grad-panel: linear-gradient(180deg, #fdfcff, #fff);
+
+  /* 色阶 */
+  --ink:    #18181b;
+  --ink-2:  #3f3f46;
+  --gray:   #71717a;
+  --muted:  #a1a1aa;
+  --faint:  #d4d4d8;
+  --violet: #7c3aed;
+
+  /* 边框 */
+  --line:      #e4e4e7;
+  --line-soft: #f4f4f5;
+  --line-tint: #f0e9ff;
+
+  /* 徽章色 */
+  --badge-ref-fg:  #92400e;
+  --badge-ref-bg:  #fef3c7;
+  --badge-not-fg:  #b91c1c;
+  --badge-not-bg:  #fee2e2;
+  --badge-pend-fg: #6b7280;
+  --badge-pend-bg: #f4f4f5;
+
+  /* 圆角 */
+  --r-logo:  4px;
+  --r-pill:  10px;
+  --r-card:  12px;
+  --r-panel: 14px;
+
+  /* 字号 */
+  --fs-hero:  34px;
+  --fs-brand: 15px;
+  --fs-body:  14px;
+  --fs-input: 13px;
+  --fs-nav:   12px;
+  --fs-sub:   11.5px;
+  --fs-micro: 11px;
+  --fs-badge: 10px;
+
+  /* 布局 */
+  --container: 680px;
+  --pad-x:     24px;
+
+  /* 字体 */
+  --font: -apple-system, 'PingFang SC', sans-serif;
+}
+
+/* ── 2. 基础重置 ─────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font);
+  background: #fff;
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── 3. 布局容器 ─────────────────────────────────────────── */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--pad-x);
+}
+
+/* ── 4. 导航 ─────────────────────────────────────────────── */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 20px var(--pad-x);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: var(--fs-brand);
+}
+
+.nav-logo {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-logo);
+  background: var(--grad-brand);
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  gap: 18px;
+  font-size: var(--fs-nav);
+  color: var(--muted);
+}
+
+.nav-links a {
+  color: var(--muted);
+}
+
+.nav-links a.active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.nav-cta {
+  color: var(--ink) !important;
+  font-weight: 600 !important;
+}
+
+/* ── 5. 徽章 ─────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: var(--fs-badge);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+/* 官方：渐变蓝，白字 */
+.badge-official {
+  background: var(--grad-badge);
+  color: #fff;
+}
+
+/* 参考线·待核：黄底深褐字 */
+.badge-ref {
+  background: var(--badge-ref-bg);
+  color: var(--badge-ref-fg);
+}
+
+/* 不在认可名单：红底深红字 */
+.badge-notlist {
+  background: var(--badge-not-bg);
+  color: var(--badge-not-fg);
+}
+
+/* 案例积累中/待收录：灰底灰字 */
+.badge-pending {
+  background: var(--badge-pend-bg);
+  color: var(--badge-pend-fg);
+}
+
+/* ── 6. 结果列表行 ───────────────────────────────────────── */
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 4px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.result-row:last-child {
+  border-bottom: none;
+}
+
+.row-emoji {
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-title {
+  font-size: var(--fs-body);
+  font-weight: 700;
+}
+
+.row-sub {
+  font-size: var(--fs-sub);
+  color: var(--gray);
+  margin-top: 2px;
+  line-height: 1.5;
+}
+
+.row-source {
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  text-decoration: underline;
+  flex-shrink: 0;
+}
+
+/* 暗化行（不在名单等） */
+.result-row.is-dim .row-title {
+  color: var(--gray);
+}
+
+.result-row.is-dim .row-sub {
+  color: var(--muted);
+}
+
+/* ── 7. 输入组 ───────────────────────────────────────────── */
+.input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.field {
+  font-size: var(--fs-input);
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  min-width: 0;
+  outline: none;
+  font-family: var(--font);
+  color: var(--ink);
+  background: #fff;
+}
+
+.field::placeholder {
+  color: var(--muted);
+}
+
+.field:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.field.invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* 四格输入弹性比例 */
+.f-school  { flex: 1.4; }
+.f-score   { flex: 0.7; }
+.f-subject { flex: 0.9; }
+.f-ielts   { flex: 0.7; }
+
+.input-hint {
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+/* ── 8. CTA 按钮 ─────────────────────────────────────────── */
+.btn-cta {
+  background: var(--grad-cta);
+  color: #fff;
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  padding: 13px 22px;
+  border-radius: var(--r-pill);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-cta:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── 9. 卡片 ─────────────────────────────────────────────── */
+.card {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-card);
+  padding: 14px;
+  flex: 1;
+  display: block;
+  text-decoration: none;
+}
+
+.card-title {
+  font-size: var(--fs-input);
+  font-weight: 700;
+}
+
+.card-desc {
+  font-size: var(--fs-micro);
+  color: var(--gray);
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+.card-grid {
+  display: flex;
+  gap: 10px;
+}
+
+/* ── 10. 验证面板 ────────────────────────────────────────── */
+.verify-panel {
+  border: 1px solid var(--line-tint);
+  background: var(--grad-panel);
+  border-radius: var(--r-panel);
+  padding: 16px 18px;
+}
+
+.verify-label {
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  color: var(--violet);
+  letter-spacing: 1px;
+}
+
+.verify-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 12px;
+}
+
+.verify-fact {
+  font-size: var(--fs-input);
+  color: var(--ink-2);
+}
+
+.verify-link {
+  font-size: var(--fs-micro);
+  color: var(--violet);
+  text-decoration: underline;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.verify-note {
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── 11. 页脚 ────────────────────────────────────────────── */
+.footer {
+  font-size: var(--fs-badge);
+  color: var(--faint);
+  text-align: center;
+  padding: 20px 0 28px;
+}
+
+/* ── 12. Toast 通知 ──────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: #fff;
+  font-size: var(--fs-input);
+  padding: 12px 20px;
+  border-radius: var(--r-pill);
+  z-index: 10;
+  max-width: calc(100vw - 48px);
+  text-align: center;
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+/* ── 13. 渐变文字工具类 ──────────────────────────────────── */
+.grad-text {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── 14. Hero 区域 ───────────────────────────────────────── */
+.hero-title {
+  font-size: var(--fs-hero);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+.hero-sub {
+  font-size: var(--fs-body);
+  color: var(--gray);
+  margin-top: 14px;
+  line-height: 1.7;
+}
+
+/* ── 15. 结果标签 ────────────────────────────────────────── */
+.results-label {
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+/* ── 16. 院校全景表格 (ladder) ───────────────────────────── */
+.ladder-head,
+.ladder-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.6fr 1.1fr 1fr 0.6fr 0.6fr;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: var(--fs-input);
+}
+
+.ladder-head {
+  font-size: var(--fs-micro);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.lr-name {
+  font-weight: 700;
+}
+
+/* 桌面：data-label 伪元素隐藏 */
+.ladder-row [data-label]::before {
+  content: none;
+}
+
+/* ── 17. 响应式断点 (max-width: 640px) ──────────────────── */
+@media (max-width: 640px) {
+  /* 导航：隐藏普通链接，仅保留 CTA */
+  .nav-links a:not(.nav-cta) {
+    display: none;
+  }
+
+  /* Hero 字号缩小 */
+  .hero-title {
+    font-size: 26px;
+    letter-spacing: -0.3px;
+  }
+
+  /* 输入组纵向堆叠 */
+  .input-group {
+    flex-direction: column;
+  }
+
+  .input-group .field,
+  .input-group .btn-cta {
+    width: 100%;
+    flex: none;
+  }
+
+  /* 验证面板行纵向 */
+  .verify-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* 卡片网格纵向 */
+  .card-grid {
+    flex-direction: column;
+  }
+
+  /* Ladder 表头隐藏，行变 2 列卡片 */
+  .ladder-head {
+    display: none;
+  }
+
+  .ladder-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 8px;
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-card);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  .lr-name {
+    grid-column: 1 / 2;
+  }
+
+  .lr-status {
+    grid-column: 2 / 3;
+    justify-self: end;
+  }
+
+  /* 移动端 data-label 打前缀标签 */
+  .ladder-row [data-label]::before {
+    content: attr(data-label) " ";
+    color: var(--muted);
+    font-size: var(--fs-badge);
+    display: block;
+  }
+}
