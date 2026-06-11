@@ -1,5 +1,11 @@
 -- stg_uk_official_lists: 官方认可名单归一化，cn_name_raw → cn_uni_id
--- 归一策略：精确匹配优先（=），LIKE兜底；未命中保留NULL行供上层使用
+-- 归一策略（精确匹配三档，无LIKE兜底——宁不归一也不误配）：
+--   1. lower(trim(cn_name_raw)) = lower(trim(name_en))  — 精确英文名
+--   2. trim(cn_name_raw) = trim(name_zh)                 — 精确中文名
+--   3. trim(cn_name_raw) = trim(alias)                   — 别名精确
+--   未命中 → cn_uni_id=NULL（保留行，供上层以 NULL tier 跳过）
+-- 注：废弃 LIKE 兜底防止 "Nanjing University, Jinling College"(双非/tier4)
+--     被子串命中 nju(985) 导致 sheffield×985 均线虚高
 
 WITH raw_lists AS (
     SELECT * FROM {{ source('raw', 'uk_official_lists') }}
@@ -64,50 +70,7 @@ alias_exact AS (
       AND l.id NOT IN (SELECT id FROM exact_zh)
 ),
 
--- 4. LIKE模糊匹配英文名（兜底，可能有误伤）
-like_en AS (
-    SELECT
-        l.id,
-        l.uk_uni_id,
-        l.cn_name_raw,
-        l.band,
-        l.min_avg_score,
-        l.source_url,
-        l.fetched_at,
-        d.cn_uni_id,
-        d.tier_label AS cn_tier,
-        4 AS match_priority
-    FROM raw_lists l
-    JOIN {{ ref('dim_cn_university') }} d
-        ON lower(l.cn_name_raw) LIKE '%' || lower(d.name_en) || '%'
-    WHERE l.id NOT IN (SELECT id FROM exact_en)
-      AND l.id NOT IN (SELECT id FROM exact_zh)
-      AND l.id NOT IN (SELECT id FROM alias_exact)
-),
-
--- 5. LIKE模糊匹配中文名（兜底）
-like_zh AS (
-    SELECT
-        l.id,
-        l.uk_uni_id,
-        l.cn_name_raw,
-        l.band,
-        l.min_avg_score,
-        l.source_url,
-        l.fetched_at,
-        d.cn_uni_id,
-        d.tier_label AS cn_tier,
-        5 AS match_priority
-    FROM raw_lists l
-    JOIN {{ ref('dim_cn_university') }} d
-        ON l.cn_name_raw LIKE '%' || d.name_zh || '%'
-    WHERE l.id NOT IN (SELECT id FROM exact_en)
-      AND l.id NOT IN (SELECT id FROM exact_zh)
-      AND l.id NOT IN (SELECT id FROM alias_exact)
-      AND l.id NOT IN (SELECT id FROM like_en)
-),
-
--- 6. 未命中行（cn_uni_id = NULL，保留）
+-- 4. 未命中行（cn_uni_id = NULL，保留）
 unmatched AS (
     SELECT
         l.id,
@@ -124,16 +87,12 @@ unmatched AS (
     WHERE l.id NOT IN (SELECT id FROM exact_en)
       AND l.id NOT IN (SELECT id FROM exact_zh)
       AND l.id NOT IN (SELECT id FROM alias_exact)
-      AND l.id NOT IN (SELECT id FROM like_en)
-      AND l.id NOT IN (SELECT id FROM like_zh)
 ),
 
 all_matched AS (
     SELECT * FROM exact_en
     UNION ALL SELECT * FROM exact_zh
     UNION ALL SELECT * FROM alias_exact
-    UNION ALL SELECT * FROM like_en
-    UNION ALL SELECT * FROM like_zh
     UNION ALL SELECT * FROM unmatched
 ),
 

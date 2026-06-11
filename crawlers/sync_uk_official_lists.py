@@ -360,7 +360,7 @@ def fetch_edinburgh_pdf(snapshot_path: str | None = None) -> tuple[str, list[str
 
     if snapshot_path:
         pdf_path = snapshot_path
-        source_url = pdf_path
+        source_url = EDINBURGH_URL  # 快照模式下使用官方页面 URL，不暴露本地路径
     else:
         # Step 1: 抓取页面，找 PDF 链接
         log.info("GET %s", EDINBURGH_URL)

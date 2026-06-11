@@ -3,9 +3,9 @@
 -- 官方源规则：
 --   sheffield: arwu-tier1/2/3/4 直接用行上的 min_avg_score（排除 gpa-scale/see-additional）
 --   ucl:       band='in-list' → min_avg_score=85（官网原文：2:1 requires min weighted avg 85%）
---   edinburgh: band='priority-list' → min_avg_score=80（官网原文：Band B/C minimum 80%
---              for Priority List universities；Band A requires 85%，priority-list DB行未细分band，
---              取保守值80）
+--   edinburgh: band='priority-list' → min_avg_score=85（官网原文：Band A requires 85%；
+--              Band B/C: minimum 80% for Priority List universities；priority-list DB行未细分band，
+--              取保守上限85% — 防Band A项目误报达标）
 --   bristol:   不出线（accepted名单仅判内外，无明确分数线）
 --
 -- 合并规则：同(uk_uni_id, cn_tier) 官方已有非空线 → 种子行不出（NOT EXISTS）
@@ -95,8 +95,9 @@ seed_filtered AS (
     WHERE NOT EXISTS (
         SELECT 1
         FROM official_all o
-        WHERE o.uk_uni_id = t.uk_uni_id
-          AND o.cn_tier    = t.cn_tier
+        WHERE o.uk_uni_id    = t.uk_uni_id
+          AND o.cn_tier      = t.cn_tier
+          AND o.subject_group = t.subject_group  -- MVP-2: 防商科种子被通用线误杀
     )
 ),
 
