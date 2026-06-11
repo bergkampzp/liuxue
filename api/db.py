@@ -11,3 +11,10 @@ def fetch_all(sql: str, params: tuple = ()) -> list[dict]:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(sql, params)
             return [dict(r) for r in cur.fetchall()]
+
+
+def execute(sql: str, params: tuple = ()) -> None:
+    with psycopg2.connect(DSN) as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, params)
+        conn.commit()

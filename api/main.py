@@ -1,10 +1,11 @@
 import re
+import json
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from rapidfuzz import fuzz, process
 
-from api.db import fetch_all
+from api.db import fetch_all, execute
 
 app = FastAPI(title="英联邦留学选校 API", version="0.1.0")
 
@@ -238,3 +239,20 @@ def position(body: PositionIn):
         "major_fit": major_fit,
         "waitlist_hint": "曼大/KCL等校精确线即将上线，可在 /waitlist 留邮箱",
     }
+
+
+def insert_waitlist(email: str, uk_uni_id: str | None, profile: dict | None):
+    execute("INSERT INTO raw.waitlist_leads (email, uk_uni_id, profile_json) VALUES (%s,%s,%s)",
+            (email, uk_uni_id, json.dumps(profile or {}, ensure_ascii=False)))
+
+
+class WaitlistIn(BaseModel):
+    email: EmailStr
+    uk_uni_id: str | None = None
+    profile: dict | None = None
+
+
+@app.post("/waitlist")
+def waitlist(body: WaitlistIn):
+    insert_waitlist(body.email, body.uk_uni_id, body.profile)
+    return {"ok": True, "msg": "已登记，上线后第一时间通知你"}
