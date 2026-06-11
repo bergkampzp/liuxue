@@ -1,0 +1,2 @@
+﻿undergrad_school_raw,suggested_cn_uni_id,match_method,match_confidence,reviewed,裁决_确认cn_uni_id,备注
+【说明】当前无待归一校名,1p3a 数据未接入；数据到达后重跑 python3 scripts/build_review_pack.py 自动填充,N/A,N/A,N/A,,回流路径：确认行追加到 dbt_liuxue/seeds/cn_university_alias.csv

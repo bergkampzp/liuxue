@@ -1,0 +1,2 @@
+﻿id,uk_uni_id,subject_group,cn_tier,line_low,line_high,line_iso50,sample_n,offer_n,reject_n,confidence,method,fallback_level,year_range,note,sanity_像话,sanity_不像话,sanity_存疑,审核备注
+【说明】当前无反推线数据,1p3a 数据未接入,数据到达并运行 ./run-pipeline.sh case 后重跑 python3 scripts/build_review_pack.py 自动填充,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,红线：H7未经顾问签字确认，case反推线不得接入web/API（见 methodology 承诺）,,,,
