@@ -1,1 +1,146 @@
-<h1>选校罗盘</h1>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>选校罗盘 — 每个数字都有出处</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- 1. 导航 -->
+<nav class="nav">
+  <a href="/" class="nav-brand">
+    <span class="nav-logo"></span>
+    选校罗盘
+  </a>
+  <div class="nav-links">
+    <a href="/school.html">院校查询</a>
+    <a href="/methodology.html">我们的数据</a>
+    <a href="#locate" class="nav-cta">开始定位</a>
+  </div>
+</nav>
+
+<!-- 2. Hero -->
+<div class="container" style="padding-top:48px;padding-bottom:40px">
+  <div class="hero-title">
+    双非 82 分，能上哪些英国大学？<br>
+    <span class="grad-text">每个数字都有出处。</span>
+  </div>
+  <div class="hero-sub">
+    3,453 条英国大学官方名单 · 4 校官网精确判定 · 不在名单会直说<br>
+    不收你一分钱，也不接学校返佣。
+  </div>
+</div>
+
+<!-- 3. 输入区 -->
+<div class="container" id="locate" style="padding-bottom:32px">
+  <form id="position-form" novalidate>
+    <div class="input-group">
+      <input class="field f-school" name="school" type="text"
+             placeholder="本科学校，如：江苏大学" autocomplete="off">
+      <input class="field f-score" name="score" type="text"
+             placeholder="均分 82" inputmode="decimal">
+      <select class="field f-subject" name="subject">
+        <option value="通用" selected>通用</option>
+        <option value="CS与数据">CS与数据</option>
+        <option value="商科金融">商科金融</option>
+        <option value="工科">工科</option>
+        <option value="社科">社科</option>
+      </select>
+      <input class="field f-ielts" name="ielts" type="text"
+             placeholder="雅思 6.5（选填）" inputmode="decimal">
+      <button type="submit" class="btn-cta">看结果 →</button>
+    </div>
+    <div class="input-hint">10 秒出结果 · 无需注册 · 雅思可选填</div>
+  </form>
+</div>
+
+<!-- 4. 验证面板 -->
+<div class="container" style="padding-bottom:36px">
+  <div class="verify-panel">
+    <div class="verify-label">不信？当场验证一个 ↓</div>
+    <div class="verify-row">
+      <div class="verify-fact">
+        江苏大学 → 谢菲尔德大学：官方分档 <b>2:1 学位需均分 75%</b>
+      </div>
+      <a class="verify-link"
+         href="https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
+         target="_blank" rel="noopener">
+        打开谢菲官网名单核对 ↗
+      </a>
+    </div>
+    <div class="verify-note">
+      谢菲尔德公开了 2,891 所中国院校的逐校分档——我们全部结构化了，你随时可以抽查我们。
+    </div>
+  </div>
+</div>
+
+<!-- 5. 结果区 -->
+<div class="container" id="results" style="padding-bottom:40px">
+  <div class="results-label">结果长这样 — 江苏大学 · 均分 82 · CS与数据</div>
+
+  <!-- 示例行 1：谢菲 官方公布 -->
+  <div class="result-row">
+    <span class="row-emoji">🎯</span>
+    <div class="row-main">
+      <div class="row-title">谢菲尔德大学 <span class="badge badge-official">官方公布</span></div>
+      <div class="row-sub">官方线：你这档官方线 75 分，你 82 分（+7）；官方认可名单，数据来自校方发布文件</div>
+    </div>
+    <a class="row-source"
+       href="https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
+       target="_blank" rel="noopener">来源 ↗</a>
+  </div>
+
+  <!-- 示例行 2：利兹 参考线 -->
+  <div class="result-row">
+    <span class="row-emoji">🚀</span>
+    <div class="row-main">
+      <div class="row-title">利兹大学 <span class="badge badge-ref">参考线·待核</span></div>
+      <div class="row-sub">聚合参考线：双非背景约需均分 78，你的均分 82（+4）；建议核对官网，非录取承诺（参考线，非录取承诺）</div>
+    </div>
+  </div>
+
+  <!-- 示例行 3：UCL 不在名单 -->
+  <div class="result-row is-dim">
+    <span class="row-emoji">⛔</span>
+    <div class="row-main">
+      <div class="row-title">UCL <span class="badge badge-notlist">不在认可名单</span></div>
+      <div class="row-sub">不在 UCL 官方 84 校名单内；你的本科院校不在该校官方认可名单，通常不予考虑——别浪费申请费</div>
+    </div>
+  </div>
+
+  <!-- 示例行 4：曼大 积累中 -->
+  <div class="result-row is-dim">
+    <span class="row-emoji">⏳</span>
+    <div class="row-main">
+      <div class="row-title">曼彻斯特大学 <span class="badge badge-pending">案例积累中</span></div>
+      <div class="row-sub">精确线尚未收录；案例积累中，上线后第一时间通知你——<a href="#" style="color:var(--violet);text-decoration:underline">留个邮箱</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. 双卡 -->
+<div class="container" style="padding-bottom:48px">
+  <div class="card-grid">
+    <a class="card" href="/methodology.html">
+      <div class="card-title">🧮 我们怎么算线</div>
+      <div class="card-desc">数据来源 · 徽章含义 · 反推方法论——所有逻辑公开透明，你随时可以抽查我们。</div>
+    </a>
+    <a class="card" href="/school.html">
+      <div class="card-title">🏛️ 你的学校在各校什么待遇</div>
+      <div class="card-desc">输入本科校名，查看你在 30 所英国大学全景分档——名单内/参考线/不在名单一目了然。</div>
+    </a>
+  </div>
+</div>
+
+<!-- 7. 页脚 + Toast -->
+<div class="footer">
+  录取结果由学校最终决定，本平台数据用于规划参考，不构成录取承诺 · 数据更新于 2026-06
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>
