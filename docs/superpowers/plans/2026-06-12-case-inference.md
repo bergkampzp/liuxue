@@ -10,10 +10,9 @@
 
 ---
 
-### R-T1: gter 规模化爬取（后台，先启动）
-- [ ] `cd crawlers && nohup python3 sync_gter.py --max-pages 750 > /tmp/gter_crawl.log 2>&1 &`（~15k 行，1s 间隔约 20 分钟；增量去重已内建）
-- [ ] 期间继续后续任务；收尾时 `SELECT count(*),count(*) FILTER (WHERE decision_detail IS NOT NULL) FROM raw.liuxue_admissions WHERE source='gter'` 记录产量
-- [ ] 无单独 commit（数据入库不入 git）
+### R-T1: gter 规模化爬取 —— **已探明不可行，降级为滴灌**（2026-06-12 实测）
+- [x] 实测：API page≥2 返回 401（深分页需登录 token）；HTML 路由为 SPA 空壳无数据。119,734 条总量的深数据与 1p3a 同属"用户凭据解锁项"
+- [ ] 降级动作：sync_gter.py 保持首页增量（每跑一次收最新 ~20 条）；run-pipeline case 子命令里保留增量调用；待用户提供 gter 登录 token 后再加 `--token` 支持（留 TODO 注释）
 
 ### R-T2: 校名归一管线（TDD）
 **Files:** Create `scripts/normalize_cases.py`、`scripts/tests/test_normalize_cases.py`、`migrations/003_case_pipeline.sql`
