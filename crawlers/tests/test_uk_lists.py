@@ -5,7 +5,7 @@ fixtures 使用快照中截取的真实 HTML 片段（两列 table / 单列 tabl
 或真实 PDF 文本行（爱丁堡）
 """
 import pytest
-from sync_uk_official_lists import parse_ucl, parse_bristol, parse_edinburgh_pdf
+from sync_uk_official_lists import parse_ucl, parse_bristol, parse_edinburgh_pdf, parse_sheffield
 
 
 # ---------------------------------------------------------------------------
@@ -258,3 +258,149 @@ class TestParseEdinburgh:
         result = self._parse()
         keys = [(r["uk_uni_id"], r["cn_name_raw"], r["band"]) for r in result]
         assert len(keys) == len(set(keys))
+
+
+# ---------------------------------------------------------------------------
+# Sheffield fixture — 摘自官网排名列表页真实结构
+# 数据源: https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list
+# 表结构: 5列，列0=英文名, 列1=中文名, 列2=2:1成绩, 列3=2:2成绩, 列4=附加信息
+# ARWU分档（主页表格）:
+#   Top 100 + 985/211/双一流 → 70% (arwu-tier1)
+#   ARWU 101-300             → 75% (arwu-tier2)
+#   ARWU 301-500             → 80% (arwu-tier3)
+#   ARWU 501+ / 其他         → 85% (arwu-tier4)
+# ---------------------------------------------------------------------------
+SHEFFIELD_SAMPLE_HTML = """
+<table>
+  <thead>
+    <tr>
+      <th>Name of Institution (English)</th>
+      <th>Name of Institution (Chinese)</th>
+      <th>Grade Equivalent to UK 2:1</th>
+      <th>Grade Equivalent to UK 2:2</th>
+      <th>Additional Information</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Fudan University</td>
+      <td>复旦大学</td>
+      <td>70%</td>
+      <td>65%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Anhui Agricultural University</td>
+      <td>安徽农业大学</td>
+      <td>75%</td>
+      <td>70%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Anshan Normal University Liaoning China</td>
+      <td>鞍山师范学院</td>
+      <td>80%</td>
+      <td>75%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>Anhui Institute of Information Technology</td>
+      <td>安徽信息工程学院</td>
+      <td>85%</td>
+      <td>80%</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>A Ba Vocational College</td>
+      <td>阿坝职业学院</td>
+      <td>See additional information</td>
+      <td>See additional information</td>
+      <td>We will consider the 3 year Junior College Programme...</td>
+    </tr>
+    <tr>
+      <td>Some GPA University</td>
+      <td>某GPA大学</td>
+      <td>CGPA 3.0 out of 4.0</td>
+      <td>CGPA 2.7 out of 4.0</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+"""
+
+
+class TestParseSheffield:
+    def _parse(self):
+        return parse_sheffield(SHEFFIELD_SAMPLE_HTML)
+
+    def test_returns_list(self):
+        result = self._parse()
+        assert isinstance(result, list)
+
+    def test_count_from_sample(self):
+        result = self._parse()
+        assert len(result) == 6
+
+    def test_uk_uni_id_is_sheffield(self):
+        result = self._parse()
+        for r in result:
+            assert r["uk_uni_id"] == "sheffield"
+
+    def test_record_has_required_keys(self):
+        result = self._parse()
+        required = {"uk_uni_id", "cn_name_raw", "band", "min_avg_score"}
+        for r in result:
+            assert required.issubset(r.keys())
+
+    def test_tier1_band_and_score(self):
+        result = self._parse()
+        fudan = [r for r in result if r["cn_name_raw"] == "Fudan University"]
+        assert fudan, "Fudan University should be present"
+        assert fudan[0]["band"] == "arwu-tier1"
+        assert fudan[0]["min_avg_score"] == 70
+
+    def test_tier2_band_and_score(self):
+        result = self._parse()
+        anhui_agri = [r for r in result if r["cn_name_raw"] == "Anhui Agricultural University"]
+        assert anhui_agri
+        assert anhui_agri[0]["band"] == "arwu-tier2"
+        assert anhui_agri[0]["min_avg_score"] == 75
+
+    def test_tier3_band_and_score(self):
+        result = self._parse()
+        anshan = [r for r in result if r["cn_name_raw"] == "Anshan Normal University Liaoning China"]
+        assert anshan
+        assert anshan[0]["band"] == "arwu-tier3"
+        assert anshan[0]["min_avg_score"] == 80
+
+    def test_tier4_band_and_score(self):
+        result = self._parse()
+        anhui_it = [r for r in result if r["cn_name_raw"] == "Anhui Institute of Information Technology"]
+        assert anhui_it
+        assert anhui_it[0]["band"] == "arwu-tier4"
+        assert anhui_it[0]["min_avg_score"] == 85
+
+    def test_see_additional_band(self):
+        result = self._parse()
+        aba = [r for r in result if r["cn_name_raw"] == "A Ba Vocational College"]
+        assert aba
+        assert aba[0]["band"] == "see-additional"
+        assert aba[0]["min_avg_score"] is None
+
+    def test_gpa_scale_band(self):
+        result = self._parse()
+        gpa = [r for r in result if r["cn_name_raw"] == "Some GPA University"]
+        assert gpa
+        assert gpa[0]["band"] == "gpa-scale"
+        assert gpa[0]["min_avg_score"] is None
+
+    def test_skips_header_row(self):
+        result = self._parse()
+        names = [r["cn_name_raw"] for r in result]
+        assert "Name of Institution (English)" not in names
+
+    def test_all_valid_bands(self):
+        result = self._parse()
+        valid_bands = {"arwu-tier1", "arwu-tier2", "arwu-tier3", "arwu-tier4", "see-additional", "gpa-scale"}
+        for r in result:
+            assert r["band"] in valid_bands

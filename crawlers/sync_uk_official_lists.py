@@ -43,6 +43,8 @@ UCL_URL = "https://www.ucl.ac.uk/prospective-students/international/china"
 BRISTOL_URL = "https://www.bristol.ac.uk/international/countries/china/accepted-universities-in-china/"
 EDINBURGH_URL = "https://www.ed.ac.uk/studying/international/postgraduate-entry/asia/china"
 EDINBURGH_PDF_BASE = "https://www.ed.ac.uk"
+SHEFFIELD_URL = "https://www.sheffield.ac.uk/international/entry-requirements/china"
+SHEFFIELD_RANKING_URL = "https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
 EDINBURGH_SNAPSHOT_PDF = os.path.join(
     os.path.dirname(__file__), "snapshots", "edinburgh_priority_list.pdf"
 )
@@ -257,6 +259,88 @@ def parse_edinburgh_pdf(lines: list[str]) -> list[dict[str, Any]]:
     return records
 
 
+def parse_sheffield(html: str) -> list[dict[str, Any]]:
+    """
+    解析 Sheffield 中国院校分档名单。
+
+    数据源：https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list
+    DOM 结构：
+      单个 table，列顺序：
+        0: Name of Institution (English)
+        1: Name of Institution (Chinese)
+        2: Grade Equivalent to UK 2:1  → 用于确定 band
+        3: Grade Equivalent to UK 2:2
+        4: Additional Information
+
+    Band 映射（按页面 ARWU 分档表）：
+      70%  → arwu-tier1  (ARWU Top 100 + 985/211/双一流)
+      75%  → arwu-tier2  (ARWU 101-300)
+      80%  → arwu-tier3  (ARWU 301-500)
+      85%  → arwu-tier4  (ARWU 501+ / 其他院校)
+      见附加信息        → see-additional (专科升本等)
+      GPA/CGPA 制      → gpa-scale
+
+    返回 list[{uk_uni_id, cn_name_raw, band, min_avg_score}]
+    其中 min_avg_score 为 UK 2:1 对应百分制成绩（整数）或 None。
+    """
+    GRADE_BAND: dict[str, tuple[str, int | None]] = {
+        "70%": ("arwu-tier1", 70),
+        "75%": ("arwu-tier2", 75),
+        "80%": ("arwu-tier3", 80),
+        "85%": ("arwu-tier4", 85),
+        "2.1": ("arwu-tier1", 70),  # 少数按 2.1 标注，对应 tier1
+    }
+
+    soup = BeautifulSoup(html, "html.parser")
+    table = soup.find("table")
+    if not table:
+        log.warning("Sheffield: 未找到 table 元素")
+        return []
+
+    rows = table.find_all("tr")
+    records: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    for row in rows[1:]:  # 跳过表头行
+        cells = row.find_all("td")
+        if len(cells) < 3:
+            continue
+
+        eng_name = cells[0].get_text(separator=" ", strip=True)
+        grade_21 = cells[2].get_text(strip=True)
+
+        if not eng_name:
+            continue
+
+        # 确定 band 和分数
+        if grade_21 in GRADE_BAND:
+            band, score = GRADE_BAND[grade_21]
+        elif grade_21.startswith("CGPA") or grade_21.startswith("GPA"):
+            band, score = "gpa-scale", None
+        else:
+            # "See additional information" / "Please See additional information" 等
+            band, score = "see-additional", None
+
+        # 去重：官网源存在少量重复行（同一院校出现两次）
+        key = (eng_name, band)
+        if key in seen:
+            log.debug("Sheffield: 跳过重复行 %s | %s", eng_name, band)
+            continue
+        seen.add(key)
+
+        records.append(
+            {
+                "uk_uni_id": "sheffield",
+                "cn_name_raw": eng_name,  # 主存英文名（官网以英文为主键）
+                "band": band,
+                "min_avg_score": score,
+            }
+        )
+
+    log.info("Sheffield: 解析到 %d 条（arwu-tier1/2/3/4 + see-additional + gpa-scale）", len(records))
+    return records
+
+
 def fetch_edinburgh_pdf(snapshot_path: str | None = None) -> tuple[str, list[str]]:
     """
     获取爱丁堡 Priority List PDF 并提取文本行。
@@ -366,10 +450,10 @@ def upsert_records(records: list[dict[str, Any]], source_url: str) -> int:
 # CLI
 # ---------------------------------------------------------------------------
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="UCL/Bristol/Edinburgh 官方中国院校名单爬虫")
+    p = argparse.ArgumentParser(description="UCL/Bristol/Edinburgh/Sheffield 官方中国院校名单爬虫")
     p.add_argument(
         "--source",
-        choices=["ucl", "bristol", "edinburgh"],
+        choices=["ucl", "bristol", "edinburgh", "sheffield"],
         required=True,
         help="数据源",
     )
@@ -422,8 +506,12 @@ def main() -> None:
         log.info("数据库 edinburgh 总计: %d 条", total)
         return
 
+    # ---- Sheffield：排名列表页 HTML 源 ----
+    if args.source == "sheffield":
+        url = SHEFFIELD_RANKING_URL
+        parser = parse_sheffield
     # ---- UCL / Bristol：HTML 源 ----
-    if args.source == "ucl":
+    elif args.source == "ucl":
         url = UCL_URL
         parser = parse_ucl
     else:
