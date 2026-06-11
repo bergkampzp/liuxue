@@ -41,3 +41,34 @@ models:
         tests: [not_null]
       - name: cn_tier
         tests: [not_null]
+
+  - name: stg_uk_cases
+    description: 英联邦案例暂存层（school 精确命中 dim_uk_university，avg_score_pct 归一）
+    columns:
+      - name: id
+        tests: [not_null, unique]
+      - name: uk_uni_id
+        tests: [not_null]
+      - name: decision
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Offer', 'Rejected', 'Waitlist', 'Conditional Offer', 'Interview']
+
+  - name: int_uk_cases_tagged
+    description: 英联邦案例行级标注（tier_label + subject_group，供反推拟合脚本读取）
+    columns:
+      - name: id
+        tests: [not_null]
+      - name: uk_uni_id
+        tests: [not_null]
+      - name: tier_label
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['985', '211', '双非', '海本', '其他']
+      - name: subject_group
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['CS与数据', '商科金融', '工科', '法律', '教育', '传媒', '通用']

@@ -55,3 +55,33 @@ sources:
           - name: min_avg_score
           - name: source_url
           - name: fetched_at
+      - name: case_school_map
+        description: 案例中本科院校原始名 → cn_uni_id 归一映射表（三级匹配，92高闸）
+        columns:
+          - name: undergrad_school_raw
+            description: 原始本科院校名（PK）
+          - name: cn_uni_id
+            description: 归一后国内院校ID，NULL=待人工复核
+          - name: method
+            description: 匹配方式 exact/alias/fuzzy
+          - name: confidence
+            description: 匹配置信度 0-1
+          - name: reviewed
+            description: 是否已人工复核
+      - name: uk_entry_line_case
+        description: 反推线结果表（按 uk_uni_id×subject_group×cn_tier 分组）
+        columns:
+          - name: uk_uni_id
+          - name: subject_group
+          - name: cn_tier
+          - name: line_low
+          - name: line_high
+          - name: line_iso50
+          - name: sample_n
+          - name: offer_n
+          - name: reject_n
+          - name: confidence
+          - name: method
+          - name: fallback_level
+          - name: year_range
+          - name: note

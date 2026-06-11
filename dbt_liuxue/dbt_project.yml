@@ -21,6 +21,8 @@ models:
     uk:
       staging:
         +materialized: view
+      intermediate:
+        +materialized: table
       mart:
         +materialized: table
 
