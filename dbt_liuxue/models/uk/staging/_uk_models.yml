@@ -33,3 +33,11 @@ models:
           - accepted_values:
               arguments:
                 values: ['high', 'medium', 'low']
+
+  - name: mart_uk_school_match_v1
+    description: 选校定位查表层（tier 级聚合，保守上限）+ 基线雅思
+    columns:
+      - name: min_avg_score
+        tests: [not_null]
+      - name: cn_tier
+        tests: [not_null]
