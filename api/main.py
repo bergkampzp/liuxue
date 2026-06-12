@@ -418,5 +418,17 @@ def waitlist(body: WaitlistIn):
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 
+
+@app.middleware("http")
+async def no_cache_static(request, call_next):
+    """静态资源强制回源校验（no-cache≠不缓存：仍可 304，但杜绝改版后浏览器用旧CSS/JS）。
+    UI 迭代期的缓存陈旧曾导致新HTML配旧样式表的破版事故。"""
+    response = await call_next(request)
+    p = request.url.path
+    if p.startswith("/static/") or p.endswith(".html") or p == "/":
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
