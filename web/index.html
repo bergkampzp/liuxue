@@ -33,6 +33,30 @@
   </div>
 </div>
 
+<!-- 2.5 核心能力入口（三联卡，移动端纵向堆叠） -->
+<div class="container" style="padding-bottom:28px">
+  <div class="cap-grid">
+    <a class="cap-card cap-active" href="#locate">
+      <div class="cap-icon">🎯</div>
+      <div class="cap-title">选校定位</div>
+      <div class="cap-desc">输入本科背景，10 秒看冲/匹/保——每个数字带官方出处。</div>
+      <div class="cap-go">就在本页 ↓</div>
+    </a>
+    <a class="cap-card" href="/school.html">
+      <div class="cap-icon">🏛️</div>
+      <div class="cap-title">院校全景表</div>
+      <div class="cap-desc">输入你的学校，看它在 30 所英国大学的名单与分档全景。</div>
+      <div class="cap-go">去查询 →</div>
+    </a>
+    <a class="cap-card" href="/methodology.html">
+      <div class="cap-icon">🧮</div>
+      <div class="cap-title">数据与方法论</div>
+      <div class="cap-desc">3,453 条官方名单从哪来、徽章怎么读——全部可验证。</div>
+      <div class="cap-go">看方法论 →</div>
+    </a>
+  </div>
+</div>
+
 <!-- 3. 输入区 -->
 <div class="container" id="locate" style="padding-bottom:32px">
   <form id="position-form" novalidate>
@@ -120,26 +144,19 @@
   </div>
 </div>
 
-<!-- 6. 双卡 -->
-<div class="container" style="padding-bottom:48px">
-  <div class="card-grid">
-    <a class="card" href="/methodology.html">
-      <div class="card-title">🧮 我们怎么算线</div>
-      <div class="card-desc">数据来源 · 徽章含义 · 反推方法论——所有逻辑公开透明，你随时可以抽查我们。</div>
-    </a>
-    <a class="card" href="/school.html">
-      <div class="card-title">🏛️ 你的学校在各校什么待遇</div>
-      <div class="card-desc">输入本科校名，查看你在 30 所英国大学全景分档——名单内/参考线/不在名单一目了然。</div>
-    </a>
-  </div>
-</div>
-
 <!-- 7. 页脚 + Toast -->
 <div class="footer">
   录取结果由学校最终决定，本平台数据用于规划参考，不构成录取承诺 · 数据更新于 2026-06
 </div>
 
 <div class="toast" id="toast" hidden></div>
+
+<!-- 移动端底部 Tab 栏（≤640px 显示） -->
+<nav class="tabbar">
+  <a href="/" class="tab-item active"><span class="tab-icon">🎯</span><span>选校定位</span></a>
+  <a href="/school.html" class="tab-item"><span class="tab-icon">🏛️</span><span>院校全景</span></a>
+  <a href="/methodology.html" class="tab-item"><span class="tab-icon">🧮</span><span>数据方法</span></a>
+</nav>
 
 <script type="module" src="/static/app.js"></script>
 </body>

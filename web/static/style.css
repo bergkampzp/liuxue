@@ -510,3 +510,37 @@ a {
     display: block;
   }
 }
+
+/* ── 18. 核心能力入口卡（首页 hero 下三联） ──────────────── */
+.cap-grid { display: flex; gap: 10px; }
+.cap-card {
+  flex: 1; border: 1px solid var(--line-soft); border-radius: var(--r-card);
+  padding: 14px; text-decoration: none; display: block;
+  transition: border-color .15s ease;
+}
+.cap-card:hover { border-color: var(--violet); }
+.cap-card.cap-active { border-color: var(--line-tint); background: var(--grad-panel); }
+.cap-icon { font-size: 20px; line-height: 1; }
+.cap-title { font-size: var(--fs-input); font-weight: 700; margin-top: 8px; color: var(--ink); }
+.cap-desc { font-size: var(--fs-micro); color: var(--gray); margin-top: 3px; line-height: 1.55; }
+.cap-go { font-size: var(--fs-micro); color: var(--violet); margin-top: 6px; font-weight: 600; }
+
+/* ── 19. 移动端底部 Tab 栏（三页通用，App 式导航） ────────── */
+.tabbar { display: none; }
+@media (max-width: 640px) {
+  body { padding-bottom: 64px; }                /* 给固定 tabbar 让位 */
+  .tabbar {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0;
+    background: #fff; border-top: 1px solid var(--line-soft); z-index: 9;
+    padding-bottom: env(safe-area-inset-bottom);  /* iPhone 底部安全区 */
+  }
+  .tab-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 2px; padding: 8px 0 10px; font-size: 10px; color: var(--muted);
+    text-decoration: none;
+  }
+  .tab-item .tab-icon { font-size: 18px; line-height: 1; }
+  .tab-item.active { color: var(--violet); font-weight: 700; }
+  .cap-grid { flex-direction: column; }
+  .toast { bottom: 76px; }                      /* toast 抬到 tabbar 之上 */
+}
