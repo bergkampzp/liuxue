@@ -4,6 +4,11 @@
 --   同 (uk_uni_id, subject_group, cn_tier) 取 MAX(min_avg_score)，保守上限（宁严勿松）
 --   官方行存在则 source_type='official_web' / confidence='high'
 --   每校雅思取 ielts_overall 最高档作为保守基线（宁严勿松）
+--
+-- 双一流回退规则（2026-06-12）：
+--   若某 (uk_uni_id, subject_group) 无真实双一流行但有211行，
+--   则派生一条双一流回退行，取211线的 min_avg_score，
+--   source_type='aggregator', confidence='low'（黄标参考，不冒充官方）
 
 WITH tier_lines AS (
     SELECT
@@ -20,6 +25,33 @@ WITH tier_lines AS (
     FROM {{ ref('entry_requirement') }}
     WHERE cn_tier IS NOT NULL
     GROUP BY 1, 2, 3
+),
+-- 双一流回退：当 (uk_uni_id, subject_group) 有211行但无双一流行时，派生双一流行
+fallback_shuangyiliu AS (
+    SELECT
+        tl.uk_uni_id,
+        tl.subject_group,
+        '双一流'                AS cn_tier,
+        tl.min_avg_score,                                             -- 沿用211线（宁严勿松）
+        tl.n_schools_in_band,
+        NULL::text              AS official_source,
+        'aggregator'            AS any_source,
+        tl.source_url,
+        'low'                   AS confidence_raw
+    FROM tier_lines tl
+    WHERE tl.cn_tier = '211'
+      AND NOT EXISTS (
+          SELECT 1
+          FROM tier_lines ex
+          WHERE ex.uk_uni_id    = tl.uk_uni_id
+            AND ex.subject_group = tl.subject_group
+            AND ex.cn_tier      = '双一流'
+      )
+),
+all_lines AS (
+    SELECT * FROM tier_lines
+    UNION ALL
+    SELECT * FROM fallback_shuangyiliu
 ),
 baseline_ielts AS (
     SELECT DISTINCT ON (uk_uni_id)
@@ -55,6 +87,6 @@ SELECT
     b.ielts_w,
     b.ielts_s,
     b.ielts_source_url
-FROM tier_lines t
+FROM all_lines t
 JOIN {{ ref('dim_uk_university') }} u USING (uk_uni_id)
 LEFT JOIN baseline_ielts b USING (uk_uni_id)
