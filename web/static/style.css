@@ -801,3 +801,20 @@ a {
 .result-row.row-match { border-left: 3px solid #8b5cf6; padding-left: 10px; }  /* 紫·匹 */
 .result-row.row-warn  { border-left: 3px solid #f59e0b; padding-left: 10px; }  /* 橙·冲 */
 .result-row.is-risk   { border-left: 3px solid #ef4444; padding-left: 10px; }  /* 红·风险 */
+
+/* ── 24. Tab 彩色块强化（吸引点击的醒目提示） ──────────────── */
+@media (max-width: 640px) {
+  .tab-item {
+    border-radius: 12px; font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);          /* 微浮起=可按 */
+  }
+  /* 三个 Tab 各自的品牌色软色块（未选中态也醒目可点） */
+  .tab-item:nth-child(1) { background:#f5f3ff; border-color:#ddd6fe; color:#7c3aed; }
+  .tab-item:nth-child(2) { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+  .tab-item:nth-child(3) { background:#fffbeb; border-color:#fde68a; color:#b45309; }
+  /* 当前页=渐变实心白字（"你在这里"，与可点击的软色块形成对比） */
+  .tab-item.active {
+    background: var(--grad-cta); border-color: transparent; color: #fff;
+    box-shadow: 0 2px 8px rgba(124,58,237,.35);
+  }
+}
