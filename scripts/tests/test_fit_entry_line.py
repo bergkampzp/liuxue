@@ -204,3 +204,77 @@ def test_fit_all_fallback_to_generic_subject():
         assert r["confidence"] in ("low", "medium"), (
             f"回退后 confidence={r['confidence']} 不应为 high"
         )
+
+
+# ---------------------------------------------------------------------------
+# Case 8: 全拒格（C1 回归）— 不崩，返回"高于可观测范围"语义
+# ---------------------------------------------------------------------------
+def test_all_reject_cell_no_crash():
+    from fit_uk_entry_line import fit_cell
+
+    r = fit_cell([], [70, 72, 75, 78, 80], [])
+    assert r is not None, "全拒格不应崩溃返回 None"
+    assert r["line_low"] is None and r["line_iso50"] is None, (
+        f"全拒格 line_low/iso50 应为 None，得 {r['line_low']}/{r['line_iso50']}"
+    )
+    assert r["confidence"] == "low", f"全拒格 confidence 应为 low，得 {r['confidence']}"
+    assert "全拒" in (r.get("note") or ""), f"note 应含'全拒'，得 {r.get('note')}"
+    assert r["offer_n"] == 0 and r["reject_n"] == 5, (
+        f"offer_n={r['offer_n']}, reject_n={r['reject_n']}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Case 9: 拒信主导格（C2 回归）— iso50 不得给 60 地板值
+# ---------------------------------------------------------------------------
+def test_reject_dominated_iso50_not_floor():
+    from fit_uk_entry_line import fit_cell
+
+    # 2 offer @ 70/72 vs 6 rejects @ 75-92 — 拒信主导，曲线在95仍<0.5
+    r = fit_cell([70.0, 72.0], [75, 78, 82, 85, 88, 92], [1.0, 1.0])
+    assert r is not None
+    # iso50 应为 None（曲线未达50%），或至少 >= 72（不低于最高offer分）
+    assert r["line_iso50"] is None or r["line_iso50"] >= 72, (
+        f"拒信主导格 iso50 不得给地板值 60，得 {r['line_iso50']}"
+    )
+    if r["line_iso50"] is None:
+        assert r["confidence"] == "low", (
+            f"iso50=None 时 confidence 应降为 low，得 {r['confidence']}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Case 10: I3 回归 — fit_all 重复键检测 + 输入序无关性
+# ---------------------------------------------------------------------------
+def test_fit_all_no_duplicate_keys_order_independent():
+    from fit_uk_entry_line import fit_all
+
+    def _make_rows(cs_first: bool):
+        cs_rows = [
+            {"uk_uni_id": "ucl", "subject_group": "CS与数据", "tier_label": "985",
+             "avg_score_pct": s, "decision": d, "score_scale_inferred": False, "year": 2023}
+            for s, d in [(82.0, "Offer"), (84.0, "Offer"), (86.0, "Offer")]
+        ]
+        generic_rows = [
+            {"uk_uni_id": "ucl", "subject_group": "通用", "tier_label": "985",
+             "avg_score_pct": s, "decision": d, "score_scale_inferred": False, "year": 2023}
+            for s, d in [(75.0, "Offer"), (78.0, "Offer"), (80.0, "Offer"),
+                         (70.0, "Rejected"), (68.0, "Rejected"), (65.0, "Rejected")]
+        ]
+        return cs_rows + generic_rows if cs_first else generic_rows + cs_rows
+
+    res_a = fit_all(_make_rows(cs_first=True))
+    res_b = fit_all(_make_rows(cs_first=False))
+
+    def keys(res):
+        return [(r["uk_uni_id"], r["subject_group"], r["tier_label"]) for r in res]
+
+    keys_a = keys(res_a)
+    keys_b = keys(res_b)
+    assert len(keys_a) == len(set(keys_a)), f"输入序A有重复键: {keys_a}"
+    assert len(keys_b) == len(set(keys_b)), f"输入序B有重复键: {keys_b}"
+
+    # 输入序无关：键集合相同
+    assert set(keys_a) == set(keys_b), (
+        f"输入序影响输出键集合:\nA={sorted(keys_a)}\nB={sorted(keys_b)}"
+    )

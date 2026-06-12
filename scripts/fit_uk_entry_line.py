@@ -77,6 +77,20 @@ def fit_cell(
     offer_n = len(offers)
     reject_n = len(rejects)
 
+    # ---- 全拒格（无 offer）→ 不崩，返回语义明确的结果 ----
+    if not offers:
+        return {
+            "line_low": None,
+            "line_high": None,
+            "line_iso50": None,
+            "confidence": "low",
+            "method": "all_reject",
+            "note": f"样本内全拒，门槛高于可观测分数范围(最高拒信 {max(rejects)})",
+            "sample_n": n,
+            "offer_n": 0,
+            "reject_n": reject_n,
+        }
+
     # ---- 全 offer 无拒 → 只给下界 ----
     if not rejects:
         line_low = weighted_percentile(offers, offer_weights, 10)
@@ -103,9 +117,7 @@ def fit_cell(
 
     grid = np.arange(60.0, 95.5, 0.5)
     line_iso50 = _find_iso50(ir, grid)
-    if line_iso50 is None:
-        # 无法找到分界（全拒或全录）→ 用端点兜底
-        line_iso50 = 60.0 if ir.predict([95.0])[0] < 0.5 else 95.0
+    _iso50_undetectable = line_iso50 is None  # 曲线在整个网格未达 0.5（拒信主导或全录）
 
     line_low_p = weighted_percentile(offers, offer_weights, 10)
     line_high_p = weighted_percentile(offers, offer_weights, 25)
@@ -142,13 +154,20 @@ def fit_cell(
         confidence = "medium"
         method = "isotonic+p10p25"
 
+    note = None
+    if _iso50_undetectable:
+        # 等渗曲线在可观测范围内未达 50%，门槛可能高于可观测范围
+        # 不使用端点兜底（60 或 95）——方向不确定，留 None 更诚实
+        note = "等渗曲线未达50%，门槛或高于可观测范围"
+        confidence = "low"
+
     return {
         "line_low": line_low,
         "line_high": line_high,
         "line_iso50": line_iso50,
         "confidence": confidence,
         "method": method,
-        "note": None,
+        "note": note,
         "sample_n": n,
         "offer_n": offer_n,
         "reject_n": reject_n,
@@ -212,6 +231,11 @@ def fit_all(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     processed_keys: set[tuple] = set()
 
     for (uk_uni_id, subject_group, tier_label), row_list in groups.items():
+        key = (uk_uni_id, subject_group, tier_label)
+        # 已被回退合并写入 → 跳过，避免重复输出
+        if key in processed_keys:
+            continue
+
         # 0 级：原格
         offers, rejects, weights = _extract_offers_rejects(row_list)
         cell = fit_cell(offers, rejects, weights)
