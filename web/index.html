@@ -9,6 +9,7 @@
 <body>
 
 <!-- 1. 导航 -->
+<div class="nav-wrap">
 <nav class="nav">
   <a href="/" class="nav-brand">
     <span class="nav-logo"></span>
@@ -17,134 +18,148 @@
   <div class="nav-links">
     <a href="/school.html">院校查询</a>
     <a href="/methodology.html">我们的数据</a>
-    <a href="#locate" class="nav-cta">开始定位</a>
+    <a href="#m1" class="nav-cta">开始定位</a>
   </div>
 </nav>
-
-<!-- 2. Hero -->
-<div class="container" style="padding-top:48px;padding-bottom:40px">
-  <div class="hero-title">
-    双非 82 分，能上哪些英国大学？<br>
-    <span class="grad-text">每个数字都有出处。</span>
-  </div>
-  <div class="hero-sub">
-    3,453 条英国大学官方名单 · 4 校官网精确判定 · 不在名单会直说<br>
-    不收你一分钱，也不接学校返佣。
-  </div>
 </div>
 
-<!-- 2.5 核心能力入口（三联卡，移动端纵向堆叠） -->
-<div class="container" style="padding-bottom:28px">
-  <div class="cap-grid">
-    <a class="cap-card cap-active" href="#locate">
-      <div class="cap-icon">🎯</div>
-      <div class="cap-title">选校定位</div>
-      <div class="cap-desc">输入本科背景，10 秒看冲/匹/保——每个数字带官方出处。</div>
-      <div class="cap-go">就在本页 ↓</div>
-    </a>
-    <a class="cap-card" href="/school.html">
-      <div class="cap-icon">🏛️</div>
-      <div class="cap-title">院校全景表</div>
-      <div class="cap-desc">输入你的学校，看它在 30 所英国大学的名单与分档全景。</div>
-      <div class="cap-go">去查询 →</div>
-    </a>
-    <a class="cap-card" href="/methodology.html">
-      <div class="cap-icon">🧮</div>
-      <div class="cap-title">数据与方法论</div>
-      <div class="cap-desc">3,453 条官方名单从哪来、徽章怎么读——全部可验证。</div>
-      <div class="cap-go">看方法论 →</div>
-    </a>
-  </div>
-</div>
+<div class="page-wrap">
 
-<!-- 3. 输入区 -->
-<div class="container" id="locate" style="padding-bottom:32px">
-  <form id="position-form" novalidate>
-    <div class="input-group">
-      <input class="field f-school" name="school" type="text"
-             placeholder="本科学校，如：江苏大学" autocomplete="off">
-      <input class="field f-score" name="score" type="text"
-             placeholder="均分 82" inputmode="decimal">
-      <select class="field f-subject" name="subject">
-        <option value="通用" selected>通用</option>
-        <option value="CS与数据">CS与数据</option>
-        <option value="商科金融">商科金融</option>
-        <option value="工科">工科</option>
-        <option value="社科">社科</option>
-      </select>
-      <input class="field f-ielts" name="ielts" type="text"
-             placeholder="雅思 6.5（选填）" inputmode="decimal">
-      <button type="submit" class="btn-cta">看结果 →</button>
-    </div>
-    <div class="input-hint">10 秒出结果 · 无需注册 · 雅思可选填</div>
-  </form>
-</div>
-
-<!-- 4. 验证面板 -->
-<div class="container" style="padding-bottom:36px">
-  <div class="verify-panel">
-    <div class="verify-label">不信？当场验证一个 ↓</div>
-    <div class="verify-row">
-      <div class="verify-fact">
-        江苏大学 → 谢菲尔德大学：官方分档 <b>2:1 学位需均分 75%</b>
+  <!-- M1 主任务卡 -->
+  <div class="module" id="m1">
+    <div class="module-label">STEP 1 · 选校定位</div>
+    <div class="module-title">你的背景，能上哪些英国大学？</div>
+    <div class="module-sub">填 3 项必填，10 秒出结果 · <span class="grad-text">每个数字都有出处</span></div>
+    <form id="position-form" novalidate>
+      <div class="input-grid">
+        <div class="input-row">
+          <input class="field f-school" name="school" type="text"
+                 placeholder="* 本科学校，如：江苏大学" autocomplete="off">
+          <input class="field f-score" name="score" type="text"
+                 placeholder="* 均分 82" inputmode="decimal">
+        </div>
+        <div class="input-row">
+          <select class="field f-subject" name="subject">
+            <option value="通用" selected>* 方向：通用</option>
+            <option value="CS与数据">CS与数据</option>
+            <option value="商科金融">商科金融</option>
+            <option value="工科">工科</option>
+            <option value="社科">社科</option>
+          </select>
+          <input class="field f-ielts" name="ielts" type="text"
+                 placeholder="雅思 6.5（选填）" inputmode="decimal">
+        </div>
+        <button type="submit" class="btn-cta btn-block">查看我的冲 · 匹 · 保 →</button>
       </div>
-      <a class="verify-link"
-         href="https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
-         target="_blank" rel="noopener">
-        打开谢菲官网名单核对 ↗
-      </a>
-    </div>
-    <div class="verify-note">
-      谢菲尔德公开了 2,891 所中国院校的逐校分档——我们全部结构化了，你随时可以抽查我们。
+    </form>
+    <div class="stepper">
+      <span class="step-on">① 填背景</span><span>──</span><span>② 看冲匹保</span><span>──</span><span>③ 点出处核验</span>
     </div>
   </div>
+
+  <!-- M2 结果区 -->
+  <div class="module">
+    <div class="module-head">
+      <div style="font-size:12px;font-weight:700;color:var(--ink);">STEP 2 · 你的定位结果</div>
+      <div class="module-hint">提交后显示</div>
+    </div>
+    <div id="results">
+      <div class="empty-state">
+        <div class="empty-icon">🎯</div>
+        <div class="empty-text">提交背景后，这里按 <b style="color:var(--gray);">冲 / 匹 / 保 / 不建议</b> 分组展示学校</div>
+        <div class="badge-legend">
+          <span class="badge badge-official">官方公布</span>
+          <span class="badge badge-ref">参考线·待核</span>
+          <span class="badge badge-notlist">不在认可名单</span>
+          <span class="badge badge-pending">案例积累中</span>
+        </div>
+      </div>
+      <div style="border-top:1px dashed var(--line-soft);padding-top:8px;margin-top:8px;text-align:center;">
+        <details>
+          <summary style="font-size:10px;color:var(--violet);text-decoration:underline;cursor:pointer;list-style:none;">先看一个示例结果（江苏大学·82分）→</summary>
+          <div style="margin-top:8px;">
+            <!-- 示例行 1：谢菲 官方公布 -->
+            <div class="result-row">
+              <span class="row-emoji">🎯</span>
+              <div class="row-main">
+                <div class="row-title">谢菲尔德大学 <span class="badge badge-official">官方公布</span></div>
+                <div class="row-sub">官方线：你这档官方线 75 分，你 82 分（+7）；官方认可名单，数据来自校方发布文件</div>
+              </div>
+              <a class="row-source"
+                 href="https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
+                 target="_blank" rel="noopener">来源 ↗</a>
+            </div>
+            <!-- 示例行 2：利兹 参考线 -->
+            <div class="result-row">
+              <span class="row-emoji">🚀</span>
+              <div class="row-main">
+                <div class="row-title">利兹大学 <span class="badge badge-ref">参考线·待核</span></div>
+                <div class="row-sub">聚合参考线：双非背景约需均分 78，你的均分 82（+4）；建议核对官网，非录取承诺（参考线）</div>
+              </div>
+            </div>
+            <!-- 示例行 3：UCL 不在名单 -->
+            <div class="result-row is-dim">
+              <span class="row-emoji">⛔</span>
+              <div class="row-main">
+                <div class="row-title">UCL <span class="badge badge-notlist">不在认可名单</span></div>
+                <div class="row-sub">不在 UCL 官方 84 校名单内；你的本科院校不在该校官方认可名单，通常不予考虑——别浪费申请费</div>
+              </div>
+            </div>
+            <!-- 示例行 4：曼大 积累中 -->
+            <div class="result-row is-dim">
+              <span class="row-emoji">⏳</span>
+              <div class="row-main">
+                <div class="row-title">曼彻斯特大学 <span class="badge badge-pending">案例积累中</span></div>
+                <div class="row-sub">精确线尚未收录；案例积累中，上线后第一时间通知你——<a href="#" style="color:var(--violet);text-decoration:underline">留个邮箱</a></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- M3 信任带 -->
+  <div class="module">
+    <div style="font-size:12px;font-weight:700;color:var(--ink);">为什么可信</div>
+    <div class="stats-row">
+      <div class="stats-cell">
+        <div class="stats-num grad-text">3,453</div>
+        <div class="stats-lbl">官方名单条数</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-num">30 所</div>
+        <div class="stats-lbl">覆盖英国大学</div>
+      </div>
+      <div class="stats-cell">
+        <div class="stats-num">0 元</div>
+        <div class="stats-lbl">不收费不返佣</div>
+      </div>
+    </div>
+    <div class="verify-inline">
+      <span>🔍 当场验证：江苏大学 → 谢菲官方分档 <b>75%</b>（2,891 所中国院校逐校公开）</span>
+      <a href="https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
+         target="_blank" rel="noopener">打开官网核对 ↗</a>
+    </div>
+  </div>
+
+  <!-- M4 更多工具 -->
+  <div class="module-cards">
+    <a href="/school.html" class="module-card-link">
+      <div class="card-title">🏛️ 院校全景表</div>
+      <div class="card-desc">查你的学校在 30 所英国大学的待遇</div>
+      <div class="card-go">去查询 →</div>
+    </a>
+    <a href="/methodology.html" class="module-card-link">
+      <div class="card-title">🧮 数据与方法</div>
+      <div class="card-desc">名单从哪来、徽章怎么读，全可验证</div>
+      <div class="card-go">看方法论 →</div>
+    </a>
+  </div>
+
 </div>
 
-<!-- 5. 结果区 -->
-<div class="container" id="results" style="padding-bottom:40px">
-  <div class="results-label">结果长这样 — 江苏大学 · 均分 82 · CS与数据</div>
-
-  <!-- 示例行 1：谢菲 官方公布 -->
-  <div class="result-row">
-    <span class="row-emoji">🎯</span>
-    <div class="row-main">
-      <div class="row-title">谢菲尔德大学 <span class="badge badge-official">官方公布</span></div>
-      <div class="row-sub">官方线：你这档官方线 75 分，你 82 分（+7）；官方认可名单，数据来自校方发布文件</div>
-    </div>
-    <a class="row-source"
-       href="https://www.sheffield.ac.uk/international/entry-requirements/china/ranking-list"
-       target="_blank" rel="noopener">来源 ↗</a>
-  </div>
-
-  <!-- 示例行 2：利兹 参考线 -->
-  <div class="result-row">
-    <span class="row-emoji">🚀</span>
-    <div class="row-main">
-      <div class="row-title">利兹大学 <span class="badge badge-ref">参考线·待核</span></div>
-      <div class="row-sub">聚合参考线：双非背景约需均分 78，你的均分 82（+4）；建议核对官网，非录取承诺（参考线）</div>
-    </div>
-  </div>
-
-  <!-- 示例行 3：UCL 不在名单 -->
-  <div class="result-row is-dim">
-    <span class="row-emoji">⛔</span>
-    <div class="row-main">
-      <div class="row-title">UCL <span class="badge badge-notlist">不在认可名单</span></div>
-      <div class="row-sub">不在 UCL 官方 84 校名单内；你的本科院校不在该校官方认可名单，通常不予考虑——别浪费申请费</div>
-    </div>
-  </div>
-
-  <!-- 示例行 4：曼大 积累中 -->
-  <div class="result-row is-dim">
-    <span class="row-emoji">⏳</span>
-    <div class="row-main">
-      <div class="row-title">曼彻斯特大学 <span class="badge badge-pending">案例积累中</span></div>
-      <div class="row-sub">精确线尚未收录；案例积累中，上线后第一时间通知你——<a href="#" style="color:var(--violet);text-decoration:underline">留个邮箱</a></div>
-    </div>
-  </div>
-</div>
-
-<!-- 7. 页脚 + Toast -->
+<!-- 页脚 -->
 <div class="footer">
   录取结果由学校最终决定，本平台数据用于规划参考，不构成录取承诺 · 数据更新于 2026-06
 </div>

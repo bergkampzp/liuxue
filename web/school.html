@@ -9,6 +9,7 @@
 <body>
 
 <!-- 1. 导航 -->
+<div class="nav-wrap">
 <nav class="nav">
   <a href="/" class="nav-brand">
     <span class="nav-logo"></span>
@@ -17,37 +18,52 @@
   <div class="nav-links">
     <a href="/school.html" class="active">院校查询</a>
     <a href="/methodology.html">我们的数据</a>
-    <a href="/#locate" class="nav-cta">开始定位</a>
+    <a href="/#m1" class="nav-cta">开始定位</a>
   </div>
 </nav>
-
-<!-- 2. 缩小 Hero -->
-<div class="container" style="padding-top:36px;padding-bottom:28px">
-  <div class="hero-title hero-title-sm">
-    你的学校，在每所英国大学什么待遇
-  </div>
-  <div class="hero-sub">
-    输入一所中国大学，看它在 3,453 条官方名单里的全部记录
-  </div>
 </div>
 
-<!-- 3. 输入条 -->
-<div class="container" style="padding-bottom:32px">
-  <form id="ladder-form" novalidate>
-    <div class="input-group">
-      <input class="field" name="school" type="text" style="flex:1"
-             placeholder="中国大学全称，如：江苏大学" autocomplete="off">
-      <button type="submit" class="btn-cta">查全景 →</button>
+<div class="page-wrap">
+
+  <!-- M1 主任务卡 -->
+  <div class="module">
+    <div class="module-label">STEP 1 · 院校全景查询</div>
+    <div class="module-title">你的学校，在每所英国大学什么待遇</div>
+    <div class="module-sub">输入一所中国大学，查它在 30 所英国大学的名单状态与出处</div>
+    <form id="ladder-form" novalidate>
+      <div class="input-grid">
+        <div class="input-row">
+          <input class="field" name="school" type="text" style="flex:1"
+                 placeholder="* 中国大学全称，如：江苏大学" autocomplete="off">
+        </div>
+        <button type="submit" class="btn-cta btn-block">查全景 →</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- M2 结果卡 -->
+  <div class="module">
+    <div class="module-head">
+      <div style="font-size:12px;font-weight:700;color:var(--ink);">STEP 2 · 全景结果</div>
+      <div class="module-hint">提交后显示</div>
     </div>
-  </form>
+    <div id="ladder-result">
+      <div class="empty-state">
+        <div class="empty-icon">🏛️</div>
+        <div class="empty-text">输入学校名 → 30 所英国大学的名单状态/分数线/出处一次看全</div>
+        <div class="badge-legend">
+          <span class="badge badge-official">官方公布</span>
+          <span class="badge badge-ref">参考线·待核</span>
+          <span class="badge badge-notlist">不在认可名单</span>
+          <span class="badge badge-pending">案例积累中</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- 4. 结果区 -->
-<div class="container" id="ladder-result" style="padding-bottom:48px">
-  <div class="results-label">输入学校名开始查询 — 数据覆盖 30 所英国大学</div>
-</div>
-
-<!-- 5. 页脚 + Toast -->
+<!-- 页脚 -->
 <div class="footer">
   录取结果由学校最终决定，本平台数据用于规划参考，不构成录取承诺 · 数据更新于 2026-06
 </div>

@@ -87,7 +87,7 @@ async function api(path, { method = "GET", body } = {}) {
 
 // ── Toast ────────────────────────────────────────────────────
 let _toastTimer = null;
-function toast(msg, ms = 3200) {
+function toast(msg, ms = 2500) {
   const el = document.getElementById("toast");
   if (!el) return;
   el.textContent = msg;
@@ -437,6 +437,7 @@ if (positionForm) {
 
     const btn = positionForm.querySelector(".btn-cta");
     if (btn) btn.disabled = true;
+    if (btn) btn.textContent = "查询中…";
 
     try {
       const data = await api("/position", { method: "POST", body });
@@ -453,6 +454,7 @@ if (positionForm) {
         toast("服务暂时不可用，请稍后再试");
       }
     } finally {
+      if (btn) btn.textContent = "查看我的冲 · 匹 · 保 →";
       if (btn) btn.disabled = false;
     }
   });
@@ -473,6 +475,7 @@ if (ladderForm) {
 
     const btn = ladderForm.querySelector(".btn-cta");
     if (btn) btn.disabled = true;
+    if (btn) btn.textContent = "查询中…";
 
     try {
       const data = await api("/school-ladder?school=" + encodeURIComponent(v));
@@ -485,6 +488,7 @@ if (ladderForm) {
         toast("服务暂时不可用，请稍后再试");
       }
     } finally {
+      if (btn) btn.textContent = "查全景 →";
       if (btn) btn.disabled = false;
     }
   });
