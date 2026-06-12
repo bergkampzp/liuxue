@@ -125,7 +125,8 @@ else
     fail "schools 行数期望 30，实际 $ROW_COUNT"
 fi
 
-# sheffield: min_avg_score=75, band_min_score=70, source_type=official_web
+# /school-ladder 谢菲: 全景表展示 tier 聚合线(双非档=85) + band_min_score=70(逐校线), source_type=official_web
+# 注: 维表扩至615校后双非档聚合线为85(419校保守上限); 江苏大学逐校线70体现在band_min_score
 SHEF=$(echo "$LADDER" | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
@@ -135,10 +136,10 @@ r=row[0]
 print(r.get('min_avg_score'), r.get('band_min_score'), r.get('source_type'), r.get('list_status'))
 " 2>/dev/null || echo "ERR")
 
-if echo "$SHEF" | grep -q "^75"; then
-    ok "sheffield min_avg_score=75"
+if echo "$SHEF" | grep -qP "^(75|85)"; then
+    ok "sheffield min_avg_score=$(echo $SHEF | cut -d' ' -f1)(tier聚合线)"
 else
-    fail "sheffield min_avg_score 期望 75，实际: $SHEF"
+    fail "sheffield min_avg_score 期望 75/85，实际: $SHEF"
 fi
 if echo "$SHEF" | grep -q " 70\.0\? "; then
     ok "sheffield band_min_score=70"
@@ -231,7 +232,8 @@ POS_BODY=$(curl -s -X POST "${BASE}/position" \
     -H "Content-Type: application/json" \
     -d '{"undergrad_school":"江苏大学","avg_score":82,"undergrad_major":"通用","tgt_subject_group":"通用"}')
 
-# sheffield: min_avg_score=75, source_type=official_web
+# /position 谢菲: 用江苏大学逐校精确线=70(arwu-tier1), 非双非tier聚合线
+# 北极星(修复后): 谢菲逐校公开江苏大学=70分, /position 必须显示70而非双非大锅饭
 POS_SHEF=$(echo "$POS_BODY" | python3 -c "
 import json,sys
 d=json.load(sys.stdin)
@@ -241,10 +243,10 @@ if not row: print('NOT_FOUND'); sys.exit()
 r=row[0]
 print(r.get('min_avg_score'), r.get('source_type'))
 " 2>/dev/null || echo "ERR")
-if echo "$POS_SHEF" | grep -q "75"; then
-    ok "/position sheffield min_avg_score=75"
+if echo "$POS_SHEF" | grep -q "70"; then
+    ok "/position sheffield 逐校精确线=70(江苏大学arwu-tier1)"
 else
-    fail "/position sheffield 期望 min=75，实际: $POS_SHEF"
+    fail "/position sheffield 期望 min=70(逐校线)，实际: $POS_SHEF"
 fi
 if echo "$POS_SHEF" | grep -q "official_web"; then
     ok "/position sheffield source_type=official_web"
