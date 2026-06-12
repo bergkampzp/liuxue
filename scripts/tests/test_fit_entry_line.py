@@ -40,7 +40,7 @@ def test_fit_cell_all_offers_no_rejects():
     assert "或高估" in result.get("note", "")
     assert result["line_high"] is None
     assert result["line_iso50"] is None
-    # 加权P10 of [75,78,80,82,84,86,88,90]（等权）≈ 75 + 0.1*(90-75) = 76.5
+    # 加权P10 of [75,78,80,82,84,86,88,90]（等权）— 累积权重法: 第一个累积>=0.8的值=75.0
     # 用 numpy 精确值断言在合理区间即可
     assert 75.0 <= result["line_low"] <= 78.5, f"line_low={result['line_low']} 超出预期区间"
 

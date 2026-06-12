@@ -64,6 +64,7 @@
 
 **操作方式：**
 - 对 fuzzy 匹配行：确认 `suggested_cn_uni_id` 是否正确；错误则填写正确 ID
+- H3 抽检请重点核对含"分校"字样的 fuzzy 命中行（珠海分校类历史独立办学风险）
 - 对 NULL（未命中）行：手动查 `dim_cn_university` 并填写对应 cn_uni_id
 
 **回流路径：**

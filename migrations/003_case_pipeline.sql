@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS raw.uk_entry_line_case (
     offer_n        INTEGER,
     reject_n       INTEGER,
     confidence     TEXT,                                  -- low / medium / high
-    method         TEXT,                                  -- isotonic / bounds_only
+    method         TEXT,                                  -- lower_bound / isotonic+p10p25 / isotonic+bootstrap / all_reject
     fallback_level INTEGER      NOT NULL DEFAULT 0,      -- 0=无回退, 1-4=逐级降
     year_range     TEXT,                                  -- e.g. "2022-2024"
     note           TEXT,

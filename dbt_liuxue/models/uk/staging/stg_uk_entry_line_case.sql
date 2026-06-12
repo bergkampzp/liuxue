@@ -19,5 +19,8 @@ SELECT
     method,
     fallback_level,
     year_range,
-    note
+    note,
+    -- TODO: 当 raw.uk_entry_line_case 有 fitted_at 列后，改为:
+    -- (fitted_at < NOW() - INTERVAL '12 months') AS is_stale
+    false AS is_stale
 FROM {{ source('raw', 'uk_entry_line_case') }}
