@@ -192,6 +192,16 @@ def position(body: PositionIn):
                                          "hint": "尝试输入全称，如'江苏大学'"})
     rows = query_match_rows(uni["tier_label"], body.tgt_subject_group)
     membership = query_list_membership(uni["cn_uni_id"])
+
+    # 逐校精确线：该生本科校在 stg_uk_official_lists 中有 min_avg_score 的行
+    # （band='see-additional'/'gpa-scale' 的行 min_avg_score 为 null，已被过滤）
+    official_rows = query_official_list_rows(uni["cn_uni_id"])
+    school_exact = {
+        r["uk_uni_id"]: r
+        for r in official_rows
+        if r["min_avg_score"] is not None
+    }
+
     schools = []
     not_on_list = []
     for row in rows:
@@ -204,7 +214,23 @@ def position(body: PositionIn):
                 "source_url": row["source_url"],
             })
             continue
-        gap = round(body.avg_score - float(row["min_avg_score"]), 1)
+
+        # 逐校覆盖：若该英国校对本科有精确公开线（如谢菲 arwu 分档），优先使用
+        exact = school_exact.get(row["uk_uni_id"])
+        if exact:
+            min_score = float(exact["min_avg_score"])
+            src_type = "official_web"
+            src_url = exact["source_url"]
+            confidence = "high"
+            exact_label = "官方逐校分档线"
+        else:
+            min_score = float(row["min_avg_score"])
+            src_type = row["source_type"]
+            src_url = row["source_url"]
+            confidence = row["confidence"]
+            exact_label = None
+
+        gap = round(body.avg_score - min_score, 1)
         tier = bucket_of(gap)
         ielts_flag = None
         checks = [("总分", body.ielts_overall, row.get("ielts_overall")),
@@ -215,11 +241,17 @@ def position(body: PositionIn):
                 ielts_flag = f"雅思{label}差{round(float(need) - float(have), 1)}"
                 tier = {"保": "匹", "匹": "冲", "冲": "不建议", "不建议": "不建议"}[tier]
                 break
-        explanation = (
-            f"{SOURCE_LABEL[row['source_type']]}：{uni['tier_label']}背景约需均分"
-            f"{row['min_avg_score']}，你的均分{body.avg_score}（差距{gap:+}）。"
-            + (f"{ielts_flag}，按降一档处理。" if ielts_flag else ""))
-        if row["source_type"] != "official_web" and "参考线" not in explanation:
+        if exact_label:
+            explanation = (
+                f"{SOURCE_LABEL[src_type]}（{exact_label}）：该校对你的本科背景公开分数线"
+                f"{min_score}，你的均分{body.avg_score}（差距{gap:+}）。"
+                + (f"{ielts_flag}，按降一档处理。" if ielts_flag else ""))
+        else:
+            explanation = (
+                f"{SOURCE_LABEL[src_type]}：{uni['tier_label']}背景约需均分"
+                f"{min_score}，你的均分{body.avg_score}（差距{gap:+}）。"
+                + (f"{ielts_flag}，按降一档处理。" if ielts_flag else ""))
+        if src_type != "official_web" and "参考线" not in explanation:
             explanation += "（参考线，非录取承诺）"
         schools.append({
             "uk_uni_id": row["uk_uni_id"],
@@ -227,10 +259,10 @@ def position(body: PositionIn):
             "qs_rank": row["qs_rank"],
             "tier": tier,
             "gap": gap,
-            "min_avg_score": float(row["min_avg_score"]),
-            "source_type": row["source_type"],
-            "source_url": row["source_url"],
-            "confidence": row["confidence"],
+            "min_avg_score": min_score,
+            "source_type": src_type,
+            "source_url": src_url,
+            "confidence": confidence,
             "ielts_flag": ielts_flag,
             "explanation": explanation,
         })
