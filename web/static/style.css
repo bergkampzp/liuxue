@@ -764,3 +764,34 @@ a {
     flex-direction: column;
   }
 }
+
+/* ── 21. 价值排序分组头 + 风险红字（产品逻辑:推荐在上,风险沉底） ── */
+.bucket-head {
+  font-size: 11px; font-weight: 700; letter-spacing: .5px;
+  padding: 10px 8px 6px; margin-top: 6px;
+  border-radius: 8px 8px 0 0;
+}
+.bucket-ok    { color: #15803d; background: #f0fdf4; }   /* 绿·稳妥推荐 */
+.bucket-match { color: var(--violet); background: #faf5ff; }
+.bucket-warn  { color: #b45309; background: #fffbeb; }   /* 橙·冲刺有风险 */
+.bucket-risk  { color: var(--badge-not-fg); background: #fef2f2; }  /* 红·风险区 */
+
+.result-row.is-risk .row-title { color: var(--badge-not-fg); }      /* 风险行红色字体 */
+.result-row.is-risk .row-sub   { color: #dc8a8a; }
+
+/* ── 22. 底部 Tab 按钮化（明显的可切换提示） ───────────────── */
+@media (max-width: 640px) {
+  .tabbar { gap: 8px; padding: 6px 10px calc(6px + env(safe-area-inset-bottom)); background: #fff; }
+  .tab-item {
+    border: 1px solid var(--line); border-radius: 12px; background: #fafafa;
+    padding: 7px 0 8px; transition: transform .08s ease, background .12s ease;
+  }
+  .tab-item:active { transform: scale(.95); background: #f0f0f2; }   /* 按压反馈≤100ms */
+  .tab-item.active {
+    background: #f5f3ff; border-color: #ddd6fe; color: var(--violet);
+    box-shadow: inset 0 0 0 1px #ddd6fe;
+  }
+}
+
+/* ladder 风险行红字（不在认可名单沉底） */
+.ladder-row.is-risk .lr-name { color: var(--badge-not-fg); }

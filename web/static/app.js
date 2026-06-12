@@ -267,10 +267,17 @@ function renderPosition(data, query) {
     rowsHtml += `<div style="font-size:11px;color:var(--gray);padding:8px 4px 4px;border-bottom:1px solid var(--line-soft)">${fitText}</div>`;
   }
 
-  // 冲/匹/保/不建议 各桶
-  for (const tier of TIER_ORDER) {
-    const isDim = tier === "不建议";
-    for (const s of buckets[tier]) {
+  // 价值排序：稳妥推荐置顶，风险沉底红色警示（产品逻辑：用户最先看到能去的）
+  const DISPLAY_BUCKETS = [
+    { tier: "保",     head: "✅ 稳妥推荐 — 高于参考线，把握较大",  headCls: "bucket-ok"   },
+    { tier: "匹",     head: "🎯 匹配区间 — 与参考线相当",          headCls: "bucket-match" },
+    { tier: "冲",     head: "🚀 冲刺 — 低于参考线，有风险",        headCls: "bucket-warn"  },
+  ];
+  for (const b of DISPLAY_BUCKETS) {
+    const list = buckets[b.tier] || [];
+    if (!list.length) continue;
+    rowsHtml += `<div class="bucket-head ${b.headCls}">${b.head}（${list.length}）</div>`;
+    for (const s of list) {
       const badge    = BADGE_BY_SOURCE[s.source_type] || { cls: "badge-pending", label: "案例积累中" };
       const emoji    = TIER_EMOJI[s.tier] || "📌";
       const _srcUrl0 = safeUrl(s.source_url);
@@ -278,7 +285,7 @@ function renderPosition(data, query) {
         ? `<a class="row-source" href="${_srcUrl0}" target="_blank" rel="noopener">来源 ↗</a>`
         : "";
       rowsHtml += `
-<div class="result-row${isDim ? " is-dim" : ""}">
+<div class="result-row">
   <span class="row-emoji">${emoji}</span>
   <div class="row-main">
     <div class="row-title">${esc(s.name_zh)} <span class="badge ${badge.cls}">${badge.label}</span></div>
@@ -289,26 +296,11 @@ function renderPosition(data, query) {
     }
   }
 
-  // not_on_list：⛔ 红行 is-dim
-  for (const s of not_on_list) {
-    const _srcUrl1 = safeUrl(s.source_url);
-    const sourceHtml = _srcUrl1
-      ? `<a class="row-source" href="${_srcUrl1}" target="_blank" rel="noopener">名单 ↗</a>`
-      : "";
-    rowsHtml += `
-<div class="result-row is-dim">
-  <span class="row-emoji">⛔</span>
-  <div class="row-main">
-    <div class="row-title">${esc(s.name_zh)} <span class="badge badge-notlist">不在认可名单</span></div>
-    <div class="row-sub">${esc(s.note)}</div>
-  </div>
-  ${sourceHtml}
-</div>`;
-  }
-
-  // on_list_pending：名单内但该档精确线积累中 → ✅ 行（正面信号，不 dim）
-  for (const s of on_list_pending) {
-    rowsHtml += `
+  // on_list_pending：名单内但该档精确线积累中 → 正面信号，排在风险区之前
+  if (on_list_pending.length) {
+    rowsHtml += `<div class="bucket-head bucket-match">📋 名单内 · 精确线积累中（${on_list_pending.length}）</div>`;
+    for (const s of on_list_pending) {
+      rowsHtml += `
 <div class="result-row">
   <span class="row-emoji">📋</span>
   <div class="row-main">
@@ -316,7 +308,46 @@ function renderPosition(data, query) {
     <div class="row-sub">${esc(s.note)}</div>
   </div>
 </div>`;
+    }
   }
+
+  // 风险区沉底：不建议 + 不在认可名单，红色字体警示
+  const riskRows = buckets["不建议"] || [];
+  if (riskRows.length || not_on_list.length) {
+    rowsHtml += `<div class="bucket-head bucket-risk">⛔ 风险提示 — 差距较大或不在认可名单（${riskRows.length + not_on_list.length}）</div>`;
+    for (const s of riskRows) {
+      const badge    = BADGE_BY_SOURCE[s.source_type] || { cls: "badge-pending", label: "案例积累中" };
+      const _srcUrl0 = safeUrl(s.source_url);
+      const sourceHtml = _srcUrl0
+        ? `<a class="row-source" href="${_srcUrl0}" target="_blank" rel="noopener">来源 ↗</a>`
+        : "";
+      rowsHtml += `
+<div class="result-row is-risk">
+  <span class="row-emoji">⚠️</span>
+  <div class="row-main">
+    <div class="row-title">${esc(s.name_zh)} <span class="badge ${badge.cls}">${badge.label}</span></div>
+    <div class="row-sub">${esc(s.explanation)}</div>
+  </div>
+  ${sourceHtml}
+</div>`;
+    }
+    for (const s of not_on_list) {
+      const _srcUrl1 = safeUrl(s.source_url);
+      const sourceHtml = _srcUrl1
+        ? `<a class="row-source" href="${_srcUrl1}" target="_blank" rel="noopener">名单 ↗</a>`
+        : "";
+      rowsHtml += `
+<div class="result-row is-risk">
+  <span class="row-emoji">⛔</span>
+  <div class="row-main">
+    <div class="row-title">${esc(s.name_zh)} <span class="badge badge-notlist">不在认可名单</span></div>
+    <div class="row-sub">${esc(s.note)}</div>
+  </div>
+  ${sourceHtml}
+</div>`;
+    }
+  }
+
 
   // PENDING_SCHOOLS：未在结果中的 → ⏳ 灰行 + waitlist 微表单
   const pendingProfile = { school: query.school, score: query.score, subject: query.subject };
@@ -372,6 +403,11 @@ function renderLadder(data) {
 
   // 顶部标签
   const labelHtml = `<div class="results-label">${esc(cn_university.name_zh || "")}（${esc(cn_university.tier_label || "")}）— 在 30 所英国大学的待遇全景</div>`;
+
+  // 价值排序：可申（有线/名单内）在上 → 待定（未收录/个案审核）→ 不在认可名单沉底
+  const rankOf = (r) => r.list_status === "不在认可名单" ? 2
+    : (r.list_status === "未收录" || r.list_status === "个案审核") ? 1 : 0;
+  schools.sort((a, b) => rankOf(a) - rankOf(b) || (a.qs_rank || 999) - (b.qs_rank || 999));
 
   // 表头
   const headHtml = `
@@ -443,8 +479,9 @@ function renderLadder(data) {
       ? `<a href="${_srcUrl2}" target="_blank" rel="noopener">出处 ↗</a>`
       : "—";
 
+    const rowCls = s.list_status === "不在认可名单" ? " is-risk" : (isDim ? " is-dim" : "");
     rowsHtml += `
-<div class="ladder-row${isDim ? " is-dim" : ""}">
+<div class="ladder-row${rowCls}">
   <span class="lr-name">${esc(s.name_zh)}</span>
   <span class="lr-qs" data-label="QS 排名">${qsHtml}</span>
   <span class="lr-status" data-label="名单状态"><span class="badge ${badgeCls}">${badgeLabel}</span></span>
