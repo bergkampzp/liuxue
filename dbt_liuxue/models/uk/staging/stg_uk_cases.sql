@@ -105,6 +105,7 @@ final AS (
         a.gpa,
         CASE
             WHEN a.gpa IS NOT NULL AND a.gpa <= 4.5
+                 AND ROUND((a.gpa * 25)::numeric, 2) BETWEEN 40 AND 100
                 THEN ROUND((a.gpa * 25)::numeric, 2)
             WHEN a.gpa IS NOT NULL AND a.gpa >= 40 AND a.gpa <= 100
                 THEN ROUND(a.gpa::numeric, 2)
@@ -112,6 +113,7 @@ final AS (
         END                                         AS avg_score_pct,
         CASE
             WHEN a.gpa IS NOT NULL AND a.gpa <= 4.5
+                 AND ROUND((a.gpa * 25)::numeric, 2) BETWEEN 40 AND 100
                 THEN true
             WHEN a.gpa IS NOT NULL AND a.gpa >= 40 AND a.gpa <= 100
                 THEN false
