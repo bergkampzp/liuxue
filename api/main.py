@@ -235,6 +235,27 @@ def position(body: PositionIn):
             "explanation": explanation,
         })
     schools.sort(key=lambda x: (x["qs_rank"] or 999))
+
+    # 名单内但暂无tier线的门控校：不能静默丢弃（北大在Bristol名单内却消失的bug）
+    shown = {r["uk_uni_id"] for r in schools} | {r["uk_uni_id"] for r in not_on_list}
+    on_list_pending = []
+    if membership - shown:
+        for d in fetch_all(
+                "SELECT uk_uni_id, name_zh FROM dim_uk_university WHERE uk_uni_id = ANY(%s)",
+                (list(membership - shown),)):
+            on_list_pending.append({
+                "uk_uni_id": d["uk_uni_id"], "name_zh": d["name_zh"],
+                "note": "你的本科在该校官方认可名单内；该档位精确分数线积累中",
+            })
+
+    # 院校身份摘要：把"北大vs郑大"的名单差异第一眼可见
+    gated_in = sorted(membership & LIST_GATED_SCHOOLS)
+    gated_out = sorted(LIST_GATED_SCHOOLS - membership)
+    identity = {
+        "name_zh": uni["name_zh"], "tier_label": uni["tier_label"],
+        "list_count": len(membership),
+        "gated_in": gated_in, "gated_out": gated_out,
+    }
     # 功能3嵌入: 复用 MVP-0 的 classify_major + 规则表
     cat = classify_major(body.undergrad_major)
     major_fit = None
@@ -257,9 +278,13 @@ def position(body: PositionIn):
             }
     return {
         "cn_university": uni,
+        "identity": identity,
         "schools": schools,
         "not_on_list": not_on_list,
+        "on_list_pending": on_list_pending,
         "major_fit": major_fit,
+        "tier_note": "说明：英国大学公开门槛多按院校档位设线（如谢菲对985/211同档70分、牛津名校一档85分），"
+                     "同档院校纸面线相同；校际竞争差异将由案例反推线体现（建设中）。",
         "waitlist_hint": "曼大/KCL等校精确线即将上线，可在 /waitlist 留邮箱",
     }
 

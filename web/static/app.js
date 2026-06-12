@@ -9,6 +9,7 @@
 const API_BASE = "";
 
 /** 前端追加的积累中校（/position 不返回时固定灰行） */
+const GATED_NAME = { ucl: "UCL", bristol: "布里斯托", edinburgh: "爱丁堡" };
 const PENDING_SCHOOLS = [
   { uk_uni_id: "manchester", name_zh: "曼彻斯特大学" },
   { uk_uni_id: "kcl",        name_zh: "伦敦国王学院" },
@@ -219,12 +220,14 @@ function renderPosition(data, query) {
   const resultsEl = document.getElementById("results");
   if (!resultsEl) return;
 
-  const { schools = [], not_on_list = [], major_fit, waitlist_hint } = data;
+  const { schools = [], not_on_list = [], on_list_pending = [],
+          identity, tier_note, major_fit, waitlist_hint } = data;
 
   // 已出现在结果中的 uk_uni_id 集合（用于 PENDING_SCHOOLS 去重）
   const appearedIds = new Set([
     ...schools.map(s => s.uk_uni_id),
     ...not_on_list.map(s => s.uk_uni_id),
+    ...on_list_pending.map(s => s.uk_uni_id),
   ]);
 
   // 按 TIER_ORDER 分桶（桶内保持 API 序）
@@ -237,6 +240,16 @@ function renderPosition(data, query) {
 
   // 构建行 HTML
   let rowsHtml = "";
+
+  // 院校身份摘要条：让"北大 vs 郑大"的差异第一眼可见
+  if (identity) {
+    const inNames  = (identity.gated_in  || []).map(id => GATED_NAME[id] || id).join("/");
+    const outNames = (identity.gated_out || []).map(id => GATED_NAME[id] || id).join("/");
+    let idText = `已识别：<b>${esc(identity.name_zh)}</b> · ${esc(identity.tier_label)} 档 · 命中 ${identity.list_count} 所英国大学官方名单`;
+    if (inNames)  idText += `；名单内：${esc(inNames)}`;
+    if (outNames) idText += `；<span style="color:var(--badge-not-fg)">未收录你本科的校：${esc(outNames)}</span>`;
+    rowsHtml += `<div style="font-size:11px;color:var(--gray);background:var(--grad-panel);border:1px solid var(--line-tint);border-radius:9px;padding:9px 12px;margin:4px 0 8px;line-height:1.6">${idText}</div>`;
+  }
 
   // major_fit 顶部条（11px --gray）
   if (major_fit) {
@@ -293,6 +306,18 @@ function renderPosition(data, query) {
 </div>`;
   }
 
+  // on_list_pending：名单内但该档精确线积累中 → ✅ 行（正面信号，不 dim）
+  for (const s of on_list_pending) {
+    rowsHtml += `
+<div class="result-row">
+  <span class="row-emoji">📋</span>
+  <div class="row-main">
+    <div class="row-title">${esc(s.name_zh)} <span class="badge badge-official">名单内</span> <span class="badge badge-pending">线积累中</span></div>
+    <div class="row-sub">${esc(s.note)}</div>
+  </div>
+</div>`;
+  }
+
   // PENDING_SCHOOLS：未在结果中的 → ⏳ 灰行 + waitlist 微表单
   const pendingProfile = { school: query.school, score: query.score, subject: query.subject };
   for (const p of PENDING_SCHOOLS) {
@@ -305,6 +330,11 @@ function renderPosition(data, query) {
     <div class="row-sub">精确线尚未收录；案例积累中，上线后第一时间通知你——<a href="#" class="waitlist-trigger" style="color:var(--violet);text-decoration:underline">留个邮箱</a></div>
   </div>
 </div>`;
+  }
+
+  // 档位说明（诚实沟通：同档同线的现实 + 反推线预告）
+  if (tier_note) {
+    rowsHtml += `<div style="font-size:10px;color:var(--muted);padding:10px 4px 2px;line-height:1.6;border-top:1px dashed var(--line-soft);margin-top:8px">${esc(tier_note)}</div>`;
   }
 
   // 一次性替换 innerHTML
