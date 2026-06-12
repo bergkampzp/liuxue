@@ -26,8 +26,8 @@
   --line-tint: #f0e9ff;
 
   /* 徽章色 */
-  --badge-ref-fg:  #92400e;
-  --badge-ref-bg:  #fef3c7;
+  --badge-ref-fg:  #a16207;   /* 浅琥珀:数据可信度标注,不得像警示红(用户曾把#92400e误读为红) */
+  --badge-ref-bg:  #fefce8;
   --badge-not-fg:  #b91c1c;
   --badge-not-bg:  #fee2e2;
   --badge-pend-fg: #6b7280;
@@ -795,3 +795,9 @@ a {
 
 /* ladder 风险行红字（不在认可名单沉底） */
 .ladder-row.is-risk .lr-name { color: var(--badge-not-fg); }
+
+/* ── 23. 行级可行性色条（录取判断与数据徽章视觉分离） ────────── */
+.result-row.row-ok    { border-left: 3px solid #22c55e; padding-left: 10px; }  /* 绿·保 */
+.result-row.row-match { border-left: 3px solid #8b5cf6; padding-left: 10px; }  /* 紫·匹 */
+.result-row.row-warn  { border-left: 3px solid #f59e0b; padding-left: 10px; }  /* 橙·冲 */
+.result-row.is-risk   { border-left: 3px solid #ef4444; padding-left: 10px; }  /* 红·风险 */

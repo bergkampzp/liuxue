@@ -269,9 +269,9 @@ function renderPosition(data, query) {
 
   // 价值排序：稳妥推荐置顶，风险沉底红色警示（产品逻辑：用户最先看到能去的）
   const DISPLAY_BUCKETS = [
-    { tier: "保",     head: "✅ 稳妥推荐 — 高于参考线，把握较大",  headCls: "bucket-ok"   },
-    { tier: "匹",     head: "🎯 匹配区间 — 与参考线相当",          headCls: "bucket-match" },
-    { tier: "冲",     head: "🚀 冲刺 — 低于参考线，有风险",        headCls: "bucket-warn"  },
+    { tier: "保",     head: "✅ 稳妥推荐 — 高于参考线，把握较大",  headCls: "bucket-ok",    rowCls: "row-ok"    },
+    { tier: "匹",     head: "🎯 匹配区间 — 与参考线相当",          headCls: "bucket-match", rowCls: "row-match" },
+    { tier: "冲",     head: "🚀 冲刺 — 低于参考线，有风险",        headCls: "bucket-warn",  rowCls: "row-warn"  },
   ];
   for (const b of DISPLAY_BUCKETS) {
     const list = buckets[b.tier] || [];
@@ -285,7 +285,7 @@ function renderPosition(data, query) {
         ? `<a class="row-source" href="${_srcUrl0}" target="_blank" rel="noopener">来源 ↗</a>`
         : "";
       rowsHtml += `
-<div class="result-row">
+<div class="result-row ${b.rowCls}">
   <span class="row-emoji">${emoji}</span>
   <div class="row-main">
     <div class="row-title">${esc(s.name_zh)} <span class="badge ${badge.cls}">${badge.label}</span></div>
