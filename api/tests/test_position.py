@@ -67,6 +67,58 @@ def test_list_gated_school_excluded(monkeypatch):
     assert any(r["uk_uni_id"] == "ucl" for r in body["not_on_list"])
 
 
+# --- 新增：mart 无 UCL 双非档时，不在名单仍需警示（bug 修复回归）---
+
+# 模拟 mart 完全没有 UCL 行（只有 manchester），membership 为空（双非生不在任何名单）
+FAKE_ROWS_NO_UCL = [
+    {"uk_uni_id": "manchester", "name_zh": "曼彻斯特大学", "qs_rank": 35,
+     "subject_group": "通用", "cn_tier": "双非", "min_avg_score": 82.0,
+     "source_type": "aggregator", "source_url": "https://www.testdaily.cn/64451/",
+     "confidence": "low", "ielts_overall": 6.5, "ielts_l": 6.0, "ielts_r": 6.0,
+     "ielts_w": 6.0, "ielts_s": 6.0, "ielts_source_url": "https://example.org"},
+]
+
+# fetch_all 替换：为 dim_uk_university / stg_uk_official_lists 查询返回最小数据
+def _fake_fetch_all_for_gated(sql: str, params: tuple = ()):
+    """供 monkeypatch：支持 dim_uk_university 和 stg_uk_official_lists 查询"""
+    if "dim_uk_university" in sql:
+        uid = params[0] if params else None
+        mapping = {
+            "ucl": [{"name_zh": "伦敦大学学院"}],
+            "bristol": [{"name_zh": "布里斯托大学"}],
+            "edinburgh": [{"name_zh": "爱丁堡大学"}],
+        }
+        return mapping.get(uid, [])
+    if "stg_uk_official_lists" in sql:
+        return [{"source_url": "https://example.org/list"}]
+    return []
+
+
+def test_not_on_list_independent_of_mart_rows(monkeypatch):
+    """核心 bug 回归：mart 无 UCL/Edinburgh 双非档行，但双非生不在这些校名单内
+    → UCL/Edinburgh 必须出现在 not_on_list（不能因 mart 缺行而静默漏判）"""
+    monkeypatch.setattr(main, "query_match_rows", lambda t, g: FAKE_ROWS_NO_UCL)
+    monkeypatch.setattr(main, "resolve_cn_university", lambda n: FAKE_TIER)
+    monkeypatch.setattr(main, "query_list_membership", lambda cid: set())   # 不在任何名单
+    monkeypatch.setattr(main, "query_official_list_rows", lambda cid: [])
+    monkeypatch.setattr(main, "fetch_all", _fake_fetch_all_for_gated)
+    resp = client.post("/position", json={
+        "undergrad_school": "江苏大学", "avg_score": 82.0,
+        "undergrad_major": "软件工程", "tgt_subject_group": "通用"})
+    assert resp.status_code == 200
+    body = resp.json()
+    nol = {r["uk_uni_id"] for r in body["not_on_list"]}
+    # 门控校 ucl/edinburgh/bristol 均不在名单 → 全部应警示
+    assert "ucl" in nol, f"UCL 应在 not_on_list（mart 无双非行时不能漏判），实得 {nol}"
+    assert "edinburgh" in nol, f"Edinburgh 应在 not_on_list，实得 {nol}"
+    assert "bristol" in nol, f"Bristol 应在 not_on_list，实得 {nol}"
+    # manchester 不是门控校，应在 schools
+    school_ids = {r["uk_uni_id"] for r in body["schools"]}
+    assert "manchester" in school_ids, "曼大应在 schools（非门控校）"
+    # 门控校不应出现在 schools
+    assert "ucl" not in school_ids, "UCL 不应在 schools（不在名单内）"
+
+
 # --- 新增：逐校精确线覆盖 tier 聚合线 ---
 
 FAKE_ROWS_WITH_SHEFFIELD = [

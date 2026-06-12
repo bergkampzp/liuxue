@@ -206,6 +206,7 @@ def position(body: PositionIn):
     not_on_list = []
     for row in rows:
         # 有官方in/out名单的校：不在名单内则移入not_on_list，不参与冲/匹/保/不建议
+        # （处理 mart 有该校该 tier 行的情况；mart 缺行的漏判由循环后全集判定兜底）
         if row["uk_uni_id"] in LIST_GATED_SCHOOLS and row["uk_uni_id"] not in membership:
             not_on_list.append({
                 "uk_uni_id": row["uk_uni_id"],
@@ -267,6 +268,25 @@ def position(body: PositionIn):
             "explanation": explanation,
         })
     schools.sort(key=lambda x: (x["qs_rank"] or 999))
+
+    # 名单门控校的"不在名单"判定：独立于 mart 是否有该校该 tier 行（防 mart 缺行漏判）
+    # 例：UCL mart 只有 211/985/双一流档，无双非档 → 双非生循环遍历不到 UCL → 原代码漏判
+    shown_or_flagged = {s["uk_uni_id"] for s in schools} | {n["uk_uni_id"] for n in not_on_list}
+    for gated in LIST_GATED_SCHOOLS:
+        if gated in membership:
+            continue          # 在名单内，不警示
+        if gated in shown_or_flagged:
+            continue          # 已处理（不重复）
+        # 不在名单 → 补红色警示；从 dim_uk_university 和 stg_uk_official_lists 取校名/出处
+        info = fetch_all("SELECT name_zh FROM dim_uk_university WHERE uk_uni_id=%s", (gated,))
+        src = fetch_all(
+            "SELECT source_url FROM stg_uk_official_lists WHERE uk_uni_id=%s LIMIT 1", (gated,))
+        not_on_list.append({
+            "uk_uni_id": gated,
+            "name_zh": info[0]["name_zh"] if info else gated,
+            "note": "你的本科院校不在该校官方认可名单,通常不予考虑",
+            "source_url": src[0]["source_url"] if src else None,
+        })
 
     # 名单内但暂无tier线的门控校：不能静默丢弃（北大在Bristol名单内却消失的bug）
     shown = {r["uk_uni_id"] for r in schools} | {r["uk_uni_id"] for r in not_on_list}
