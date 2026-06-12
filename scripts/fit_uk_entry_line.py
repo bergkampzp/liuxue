@@ -311,8 +311,9 @@ def main():
                 avg_score_pct,
                 decision,
                 score_scale_inferred,
-                EXTRACT(YEAR FROM CURRENT_DATE)::int AS year
+                year
             FROM int_uk_cases_tagged
+            ORDER BY uk_uni_id, subject_group, tier_label
         """)
         rows = [dict(r) for r in cur.fetchall()]
     except Exception as e:
