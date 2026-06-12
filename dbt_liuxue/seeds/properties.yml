@@ -19,7 +19,7 @@ seeds:
         tests:
           - accepted_values:
               arguments:
-                values: ['985', '211', '双非', '海本', '其他']
+                values: ['985', '211', '双一流', '双非', '海本', '其他']
   - name: cn_university_alias
     columns:
       - name: alias
